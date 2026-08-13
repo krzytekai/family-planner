@@ -1,13 +1,19 @@
 {
   "name": "family-planner",
   "private": true,
-  "version": "0.1.0",
-  "packageManager": "pnpm@10.15.0",
+  "version": "0.1.1",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
-    "dev": "pnpm --filter @family-planner/web dev",
-    "build": "pnpm --filter @family-planner/web build",
-    "preview": "pnpm --filter @family-planner/web preview",
-    "lint": "pnpm --filter @family-planner/web lint",
-    "test": "pnpm --filter @family-planner/web test"
+    "dev": "npm --workspace @family-planner/web run dev",
+    "build": "npm --workspace @family-planner/web run build",
+    "preview": "npm --workspace @family-planner/web run preview",
+    "lint": "npm --workspace @family-planner/web run lint",
+    "test": "npm --workspace @family-planner/web run test"
   }
 }
