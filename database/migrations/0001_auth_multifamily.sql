@@ -86,6 +86,8 @@ as $$
   );
 $$;
 
+revoke all on function public.is_family_member(uuid) from public, anon;
+revoke all on function public.has_family_role(uuid, public.family_role[]) from public, anon;
 grant execute on function public.is_family_member(uuid) to authenticated;
 grant execute on function public.has_family_role(uuid, public.family_role[]) to authenticated;
 
@@ -93,6 +95,19 @@ alter table public.profiles enable row level security;
 alter table public.families enable row level security;
 alter table public.family_members enable row level security;
 alter table public.audit_logs enable row level security;
+
+-- Explicit API privileges. RLS controls rows; grants also limit which operations/columns are exposed.
+revoke all on public.profiles from anon, authenticated;
+revoke all on public.families from anon, authenticated;
+revoke all on public.family_members from anon, authenticated;
+revoke all on public.audit_logs from anon, authenticated;
+
+grant select on public.profiles to authenticated;
+grant update (display_name, avatar_url, updated_at) on public.profiles to authenticated;
+grant select on public.families to authenticated;
+grant update (name, updated_at) on public.families to authenticated;
+grant select on public.family_members to authenticated;
+grant select on public.audit_logs to authenticated;
 
 -- Profiles: user can see profiles of people sharing an active family.
 drop policy if exists profiles_select_shared_family on public.profiles;
@@ -130,10 +145,6 @@ drop policy if exists audit_select_admin on public.audit_logs;
 create policy audit_select_admin on public.audit_logs for select to authenticated
 using ((select public.has_family_role(family_id, array['owner','admin']::public.family_role[])));
 
-revoke insert, update, delete on public.family_members from anon, authenticated;
-revoke insert, update, delete on public.audit_logs from anon, authenticated;
-revoke insert, delete on public.families from anon, authenticated;
-
 -- Create/update profile automatically for every Auth user.
 create or replace function public.handle_new_user()
 returns trigger
@@ -148,6 +159,8 @@ begin
   return new;
 end;
 $$;
+
+revoke all on function public.handle_new_user() from public, anon, authenticated;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created after insert or update of email on auth.users
@@ -173,4 +186,5 @@ begin
 end;
 $$;
 
+revoke all on function public.bootstrap_family(text,text) from public, anon;
 grant execute on function public.bootstrap_family(text,text) to authenticated;
