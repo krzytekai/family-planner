@@ -26,7 +26,7 @@ async function authorize(request: Request, familyId: string) {
   return { admin, actor: userData.user }
 }
 
-export default async function handler(request: Request) {
+async function handler(request: Request) {
   try {
     const url = new URL(request.url)
     if (request.method === 'GET') {
@@ -65,4 +65,8 @@ export default async function handler(request: Request) {
     console.error(error)
     return json({ error: 'Błąd serwera.' }, 500)
   }
+}
+
+export default {
+  fetch: handler,
 }
