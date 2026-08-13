@@ -39,3 +39,6 @@ pnpm build
 ## Następny sprint
 
 Sprint 1: uwierzytelnianie, rodziny, członkowie rodziny, role i panel administratora.
+
+## Sprint 1 — konfiguracja Supabase
+Aktualna paczka zawiera logowanie, multi-family, role i panel administratora. Instrukcja: `docs/07-sprint-1-auth.md`.
