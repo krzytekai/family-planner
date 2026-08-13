@@ -1,0 +1,13 @@
+{
+  "name": "family-planner",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.15.0",
+  "scripts": {
+    "dev": "pnpm --filter @family-planner/web dev",
+    "build": "pnpm --filter @family-planner/web build",
+    "preview": "pnpm --filter @family-planner/web preview",
+    "lint": "pnpm --filter @family-planner/web lint",
+    "test": "pnpm --filter @family-planner/web test"
+  }
+}
