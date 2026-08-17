@@ -32,6 +32,7 @@ export interface TaskRepository {
   listMembers(familyId: string): Promise<TaskMember[]>
   createTask(input: NewTaskInput): Promise<void>
   setTaskCompleted(familyId: string, taskId: string, completed: boolean): Promise<void>
+  deleteTask(familyId: string, taskId: string): Promise<void>
 }
 
 function getClient() {
@@ -139,6 +140,19 @@ export function createTaskRepository(): TaskRepository {
         .single()
 
       if (error) throw new Error(error.message)
+    },
+
+    async deleteTask(familyId, taskId) {
+      const { data, error } = await getClient()
+        .from('tasks')
+        .delete()
+        .eq('id', taskId)
+        .eq('family_id', familyId)
+        .select('id')
+        .maybeSingle()
+
+      if (error) throw new Error(error.message)
+      if (!data) throw new Error('Nie masz uprawnień do usunięcia tego zadania lub zadanie już nie istnieje.')
     },
   }
 }

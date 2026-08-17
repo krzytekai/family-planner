@@ -10,6 +10,7 @@ export function useTasks(familyId: string) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(() => new Set())
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(() => new Set())
   const [error, setError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
@@ -80,6 +81,25 @@ export function useTasks(familyId: string) {
     }
   }, [familyId, refresh, repository])
 
+  const deleteTask = useCallback(async (task: Task) => {
+    setDeletingIds((current) => new Set(current).add(task.id))
+    setActionError(null)
+    try {
+      await repository.deleteTask(familyId, task.id)
+      await refresh()
+    } catch (reason) {
+      const message = reason instanceof Error ? reason.message : 'Nie udało się usunąć zadania.'
+      setActionError(message)
+      throw new Error(message)
+    } finally {
+      setDeletingIds((current) => {
+        const next = new Set(current)
+        next.delete(task.id)
+        return next
+      })
+    }
+  }, [familyId, refresh, repository])
+
   const todayTasks = useMemo(() => getTodayTasks(tasks), [tasks])
   const stats = useMemo(() => getTaskStats(tasks), [tasks])
 
@@ -91,9 +111,11 @@ export function useTasks(familyId: string) {
     loading,
     saving,
     updatingIds,
+    deletingIds,
     error,
     actionError,
     createTask,
     toggleCompleted,
+    deleteTask,
   }
 }

@@ -1,6 +1,6 @@
-import { CalendarClock, Check, RotateCcw, UserRound } from 'lucide-react'
+import { CalendarClock, Check, RotateCcw, Trash2, UserRound } from 'lucide-react'
 import type { FamilyRole } from '../../../types/domain'
-import { canUpdateTask, formatTaskDateTime } from '../task-utils'
+import { canDeleteTask, canUpdateTask, formatTaskDateTime } from '../task-utils'
 import type { Task } from '../types'
 
 const statusLabels = {
@@ -27,11 +27,13 @@ interface TaskCardProps {
   currentUserRole: FamilyRole
   updating: boolean
   onToggle: (task: Task) => void
+  onDelete: (task: Task) => void
 }
 
-export function TaskCard({ task, currentUserId, currentUserRole, updating, onToggle }: TaskCardProps) {
+export function TaskCard({ task, currentUserId, currentUserRole, updating, onToggle, onDelete }: TaskCardProps) {
   const done = task.status === 'done'
   const canToggle = canUpdateTask(task, currentUserId, currentUserRole)
+  const canDelete = canDeleteTask(task, currentUserId, currentUserRole)
   const dueAt = formatTaskDateTime(task.dueAt)
   const completedAt = formatTaskDateTime(task.completedAt)
 
@@ -42,7 +44,7 @@ export function TaskCard({ task, currentUserId, currentUserRole, updating, onTog
           <h3 className={`font-medium leading-snug ${done ? 'text-brand-muted line-through' : 'text-brand-text'}`}>{task.title}</h3>
           {task.description ? <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-brand-muted">{task.description}</p> : null}
         </div>
-        <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-medium ${done ? 'bg-brand-green/10 text-brand-green' : task.status === 'in_progress' ? 'bg-blue-400/10 text-blue-300' : 'bg-brand-gold/10 text-brand-gold'}`}>{statusLabels[task.status]}</span>
+        <div className="flex shrink-0 items-center gap-1"><span className={`rounded-full px-2 py-1 text-[10px] font-medium ${done ? 'bg-brand-green/10 text-brand-green' : task.status === 'in_progress' ? 'bg-blue-400/10 text-blue-300' : 'bg-brand-gold/10 text-brand-gold'}`}>{statusLabels[task.status]}</span>{canDelete ? <button type="button" onClick={() => onDelete(task)} aria-label={`Usuń zadanie: ${task.title}`} title="Usuń zadanie" className="rounded-lg p-1.5 text-brand-muted transition hover:bg-red-400/10 hover:text-red-300"><Trash2 className="h-3.5 w-3.5" /></button> : null}</div>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2 text-[11px]">

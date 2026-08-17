@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canUpdateTask, filterTasks, getTaskStats, getTodayTasks, isDueToday } from './task-utils'
+import { canDeleteTask, canUpdateTask, filterTasks, getTaskStats, getTodayTasks, isDueToday } from './task-utils'
 import type { Task, TaskFilter } from './types'
 
 function task(overrides: Partial<Task> = {}): Task {
@@ -55,6 +55,37 @@ describe('task dashboard logic', () => {
     expect(canUpdateTask(candidate, 'creator-1', 'adult')).toBe(true)
     expect(canUpdateTask(candidate, 'assignee-1', 'child')).toBe(true)
     expect(canUpdateTask(candidate, 'other-1', 'adult')).toBe(false)
+  })
+
+  describe('task deletion permissions', () => {
+    const candidate = task({
+      createdBy: { id: 'creator-1', displayName: 'Olek' },
+      assignedTo: { id: 'assignee-1', displayName: 'Ala' },
+    })
+
+    it('allows an owner to delete another user task', () => {
+      expect(canDeleteTask(candidate, 'owner-1', 'owner')).toBe(true)
+    })
+
+    it('allows an admin to delete another user task', () => {
+      expect(canDeleteTask(candidate, 'admin-1', 'admin')).toBe(true)
+    })
+
+    it('allows an adult to delete their own task', () => {
+      expect(canDeleteTask(candidate, 'creator-1', 'adult')).toBe(true)
+    })
+
+    it('does not allow an adult to delete another user task', () => {
+      expect(canDeleteTask(candidate, 'adult-1', 'adult')).toBe(false)
+    })
+
+    it('does not allow deletion only because the user is assigned', () => {
+      expect(canDeleteTask(candidate, 'assignee-1', 'adult')).toBe(false)
+    })
+
+    it('does not allow a child to delete another user task', () => {
+      expect(canDeleteTask(candidate, 'child-1', 'child')).toBe(false)
+    })
   })
 
   it.each(filterCases)('filters tasks using $filter', ({ filter, expected }) => {

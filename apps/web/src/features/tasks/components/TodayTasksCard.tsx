@@ -1,6 +1,6 @@
-import { Check, Clock3, RotateCcw, UserRound } from 'lucide-react'
+import { Check, Clock3, RotateCcw, Trash2, UserRound } from 'lucide-react'
 import type { FamilyRole } from '../../../types/domain'
-import { canUpdateTask, formatTaskTime } from '../task-utils'
+import { canDeleteTask, canUpdateTask, formatTaskTime } from '../task-utils'
 import type { Task } from '../types'
 
 const statusLabels = {
@@ -18,10 +18,11 @@ interface TodayTasksCardProps {
   actionError: string | null
   updatingIds: Set<string>
   onToggle: (task: Task) => void
+  onDelete: (task: Task) => void
   onViewAll: () => void
 }
 
-export function TodayTasksCard({ tasks, currentUserId, currentUserRole, loading, error, actionError, updatingIds, onToggle, onViewAll }: TodayTasksCardProps) {
+export function TodayTasksCard({ tasks, currentUserId, currentUserRole, loading, error, actionError, updatingIds, onToggle, onDelete, onViewAll }: TodayTasksCardProps) {
   return (
     <article className="surface overflow-hidden rounded-2xl">
       <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
@@ -40,6 +41,7 @@ export function TodayTasksCard({ tasks, currentUserId, currentUserRole, loading,
             const done = task.status === 'done'
             const updating = updatingIds.has(task.id)
             const canToggle = canUpdateTask(task, currentUserId, currentUserRole)
+            const canDelete = canDeleteTask(task, currentUserId, currentUserRole)
             const time = formatTaskTime(task.dueAt)
             return (
               <div key={task.id} className="flex items-start gap-3 px-4 py-4 sm:px-5">
@@ -56,7 +58,7 @@ export function TodayTasksCard({ tasks, currentUserId, currentUserRole, loading,
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className={`text-sm font-medium ${done ? 'text-brand-muted line-through' : ''}`}>{task.title}</div>
-                    <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${done ? 'bg-brand-green/10 text-brand-green' : task.status === 'in_progress' ? 'bg-blue-400/10 text-blue-300' : 'bg-brand-gold/10 text-brand-gold'}`}>{statusLabels[task.status]}</span>
+                    <div className="flex items-center gap-1"><span className={`rounded-full px-2 py-1 text-[10px] font-medium ${done ? 'bg-brand-green/10 text-brand-green' : task.status === 'in_progress' ? 'bg-blue-400/10 text-blue-300' : 'bg-brand-gold/10 text-brand-gold'}`}>{statusLabels[task.status]}</span>{canDelete ? <button type="button" onClick={() => onDelete(task)} aria-label={`Usuń zadanie: ${task.title}`} title="Usuń zadanie" className="rounded-lg p-1.5 text-brand-muted transition hover:bg-red-400/10 hover:text-red-300"><Trash2 className="h-3.5 w-3.5" /></button> : null}</div>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-brand-muted">
                     {time ? <span className="inline-flex items-center gap-1"><Clock3 className="h-3 w-3" />{time}</span> : null}

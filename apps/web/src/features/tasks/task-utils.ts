@@ -55,6 +55,12 @@ export function canUpdateTask(task: Task, userId: string, role: FamilyRole): boo
     || task.assignedTo?.id === userId
 }
 
+export function canDeleteTask(task: Task, userId: string, role: FamilyRole): boolean {
+  return role === 'owner'
+    || role === 'admin'
+    || task.createdBy.id === userId
+}
+
 export function formatTaskTime(dueAt: string | null): string | null {
   if (!dueAt) return null
   const date = new Date(dueAt)
