@@ -16,9 +16,6 @@ export function StatCard({ icon: Icon, label, value, detail }: StatCardProps) {
       </div>
       <div className="text-2xl font-semibold tracking-tight md:text-3xl">{value}</div>
       <p className="mt-1 text-xs text-brand-muted">{detail}</p>
-      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/5">
-        <div className="h-full w-2/3 rounded-full bg-brand-gold" />
-      </div>
     </article>
   )
 }

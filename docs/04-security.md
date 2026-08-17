@@ -16,5 +16,16 @@ Projekt przyjmuje OWASP ASVS 5.0.0 jako główną bazę wymagań weryfikacyjnych
 - Dependency scanning i automatyczne aktualizacje bezpieczeństwa.
 - Prywatne buckety Storage + RLS.
 
+## Zadania rodzinne
+- `tasks` ma włączone RLS i domyślnie nie udostępnia nic roli `anon`.
+- Odczyt wymaga aktywnego członkostwa w rodzinie zadania.
+- Tworzenie jest ograniczone do aktywnych ról `owner`, `admin` i `adult`.
+- Aktualizacja wymaga roli `owner`/`admin`, bycia twórcą albo osobą przypisaną.
+- Usunięcie wymaga roli `owner`/`admin` albo bycia twórcą.
+- `family_id` i `created_by` są niezmienne po utworzeniu; przypisany użytkownik musi być aktywnym członkiem tej samej rodziny.
+- Frontend nie wysyła `created_by`. Baza ustawia go przez `auth.uid()`, grant INSERT nie obejmuje tej kolumny, a RLS ponownie sprawdza tożsamość.
+- Klient korzysta wyłącznie z publishable key. Service role nie jest dostępne w przeglądarce.
+- Trigger audytowy zapisuje `task.created`, `task.updated`, `task.completed` i `task.deleted` w `audit_logs`.
+
 ## Backup
 Backup nie może przechowywać haseł użytkowników. Eksporty zawierające dane prywatne będą szyfrowane przed trwałym przechowaniem.

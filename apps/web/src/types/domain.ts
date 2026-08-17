@@ -19,12 +19,3 @@ export interface FamilyMember {
   status: MembershipStatus
   createdAt: string
 }
-
-export interface PlannerTask {
-  id: string
-  title: string
-  createdBy: string
-  assignee: string
-  time: string
-  completed: boolean
-}
