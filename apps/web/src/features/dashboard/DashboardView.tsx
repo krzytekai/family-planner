@@ -1,10 +1,11 @@
-import { Bell, CalendarDays, CheckSquare, CloudSun, ShoppingCart, WalletCards } from 'lucide-react'
+import { Bell, CheckSquare, CloudSun, ShoppingCart, WalletCards } from 'lucide-react'
 import { ComingSoonCard } from '../../components/ComingSoonCard'
 import { StatCard } from '../../components/StatCard'
 import type { FamilyContext } from '../../types/domain'
 import { QuickTaskAdd } from '../tasks/components/QuickTaskAdd'
 import { TodayTasksCard } from '../tasks/components/TodayTasksCard'
 import type { Task, TaskStats } from '../tasks/types'
+import { UpcomingEventsCard } from '../calendar/components/UpcomingEventsCard'
 
 interface DashboardViewProps {
   family: FamilyContext
@@ -18,11 +19,12 @@ interface DashboardViewProps {
   canCreateTasks: boolean
   onQuickAdd: () => void
   onViewTasks: () => void
+  onViewCalendar: () => void
   onToggle: (task: Task) => void
   onDelete: (task: Task) => void
 }
 
-export function DashboardView({ family, displayName, todayTasks, stats, loading, error, actionError, updatingIds, canCreateTasks, onQuickAdd, onViewTasks, onToggle, onDelete }: DashboardViewProps) {
+export function DashboardView({ family, displayName, todayTasks, stats, loading, error, actionError, updatingIds, canCreateTasks, onQuickAdd, onViewTasks, onViewCalendar, onToggle, onDelete }: DashboardViewProps) {
   const taskValue = loading ? '…' : error ? '—' : String(stats.active)
   const taskDetail = error ? 'Błąd danych' : `${stats.dueToday} na dzisiaj`
 
@@ -32,7 +34,7 @@ export function DashboardView({ family, displayName, todayTasks, stats, loading,
       <section className="grid grid-cols-2 gap-3 xl:grid-cols-4"><StatCard icon={CheckSquare} label="Zadania" value={taskValue} detail={taskDetail} onClick={onViewTasks}/><StatCard icon={ShoppingCart} label="Zakupy" value="—" detail="w przygotowaniu"/><StatCard icon={WalletCards} label="Wydatki" value="—" detail="w przygotowaniu"/><StatCard icon={Bell} label="Powiadomienia" value="—" detail="w przygotowaniu"/></section>
       <section className="mt-4 grid gap-4 xl:grid-cols-[1.05fr_1.15fr_.8fr]">
         <TodayTasksCard tasks={todayTasks} currentUserId={family.userId} currentUserRole={family.role} loading={loading} error={error} actionError={actionError} updatingIds={updatingIds} onToggle={onToggle} onDelete={onDelete} onViewAll={onViewTasks} />
-        <ComingSoonCard icon={CalendarDays} title="Kalendarz" description="Prawdziwe wydarzenia rodzinne pojawią się w kolejnym sprincie." />
+        <UpcomingEventsCard familyId={family.familyId} onViewCalendar={onViewCalendar} />
         <div className="space-y-4"><ComingSoonCard compact icon={ShoppingCart} title="Lista zakupów" description="Moduł w przygotowaniu." /><ComingSoonCard compact icon={CloudSun} title="Pogoda" description="Integracja w przygotowaniu." /></div>
       </section>
       <footer className="mt-8 text-center text-xs text-brand-muted lg:hidden">Designed & developed by Krzytek</footer>

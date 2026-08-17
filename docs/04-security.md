@@ -27,5 +27,14 @@ Projekt przyjmuje OWASP ASVS 5.0.0 jako główną bazę wymagań weryfikacyjnych
 - Klient korzysta wyłącznie z publishable key. Service role nie jest dostępne w przeglądarce.
 - Trigger audytowy zapisuje `task.created`, `task.updated`, `task.completed` i `task.deleted` w `audit_logs`.
 
+## Kalendarz rodzinny
+
+- `calendar_events` ma RLS i nie jest dostępne dla `anon`.
+- Każdy aktywny członek rodziny, w tym `child`, może czytać kalendarz swojej rodziny.
+- Tworzyć mogą wyłącznie `owner`, `admin` i `adult`; `created_by` pochodzi z `auth.uid()`.
+- Aktualizacja i usuwanie wymagają roli `owner`/`admin` albo bycia twórcą wydarzenia.
+- Column grants wykluczają modyfikację `id`, `family_id`, `created_by`, `created_at` oraz `updated_at`.
+- Prywatne funkcje triggerowe normalizują zapis i tworzą audyt bez przyznawania `authenticated` dostępu do schematu `private`.
+
 ## Backup
 Backup nie może przechowywać haseł użytkowników. Eksporty zawierające dane prywatne będą szyfrowane przed trwałym przechowaniem.

@@ -29,6 +29,7 @@ interface MemberRow {
 
 export interface TaskRepository {
   listTasks(familyId: string): Promise<Task[]>
+  listTasksInRange(familyId: string, rangeStart: Date, rangeEnd: Date): Promise<Task[]>
   listMembers(familyId: string): Promise<TaskMember[]>
   createTask(input: NewTaskInput): Promise<void>
   setTaskCompleted(familyId: string, taskId: string, completed: boolean): Promise<void>
@@ -94,6 +95,24 @@ export function createTaskRepository(): TaskRepository {
         .eq('family_id', familyId)
         .order('due_at', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: false })
+
+      if (error) throw new Error(error.message)
+      return ((data ?? []) as unknown as TaskRow[]).map(mapTask)
+    },
+
+    async listTasksInRange(familyId, rangeStart, rangeEnd) {
+      const { data, error } = await getClient()
+        .from('tasks')
+        .select(`
+          id, family_id, title, description, status, priority, assigned_to, created_by,
+          due_at, created_at, updated_at, completed_at,
+          assignee:profiles!tasks_assigned_to_fkey(id, display_name),
+          creator:profiles!tasks_created_by_fkey(id, display_name)
+        `)
+        .eq('family_id', familyId)
+        .gte('due_at', rangeStart.toISOString())
+        .lt('due_at', rangeEnd.toISOString())
+        .order('due_at')
 
       if (error) throw new Error(error.message)
       return ((data ?? []) as unknown as TaskRow[]).map(mapTask)

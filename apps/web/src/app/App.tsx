@@ -15,6 +15,7 @@ import { DashboardView } from '../features/dashboard/DashboardView'
 import { DeleteTaskModal } from '../features/tasks/components/DeleteTaskModal'
 import type { Task } from '../features/tasks/types'
 import type { AppView } from './navigation'
+import { CalendarView } from '../features/calendar/components/CalendarView'
 
 function Planner({ session }: { session: Session }) {
   const { family, loading, error } = useFamilyContext(session.user.id)
@@ -42,6 +43,7 @@ function FamilyPlanner({ family, canAdmin, adminOpen, setAdminOpen, displayName 
   const taskState = useTasks(family.familyId)
   const [activeView, setActiveView] = useState<AppView>('dashboard')
   const [quickTaskOpen, setQuickTaskOpen] = useState(false)
+  const [calendarCreateRequest, setCalendarCreateRequest] = useState(0)
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
   const canCreateTasks = family.role === 'owner' || family.role === 'admin' || family.role === 'adult'
 
@@ -54,16 +56,23 @@ function FamilyPlanner({ family, canAdmin, adminOpen, setAdminOpen, displayName 
     if (canCreateTasks) setQuickTaskOpen(true)
   }
 
+  function openContextualQuickAdd() {
+    if (!canCreateTasks) return
+    if (activeView === 'calendar') setCalendarCreateRequest((value) => value + 1)
+    else setQuickTaskOpen(true)
+  }
+
   return (
     <div className="min-h-screen bg-brand-bg text-brand-text">
       <Sidebar familyName={family.familyName} canAdmin={canAdmin} activeView={activeView} onNavigate={navigate} onAdmin={()=>setAdminOpen(true)} />
-      <MobileNav activeView={activeView} canCreateTask={canCreateTasks} onNavigate={navigate} onQuickAdd={openQuickTask} />
+      <MobileNav activeView={activeView} canQuickAdd={canCreateTasks} onNavigate={navigate} onQuickAdd={openContextualQuickAdd} />
       <main className="pb-24 lg:ml-64 lg:pb-8">
         <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-white/5 bg-brand-bg/85 px-4 backdrop-blur-xl md:px-7">
           <div className="relative hidden max-w-md flex-1 md:block"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-muted/50"/><input disabled aria-label="Wyszukiwanie — w przygotowaniu" placeholder="Wyszukiwanie — w przygotowaniu" className="w-full cursor-not-allowed rounded-xl border border-white/5 bg-white/[0.015] py-2.5 pl-10 pr-4 text-sm text-brand-muted/50 outline-none"/></div>
           <div className="ml-auto flex items-center gap-2"><button disabled aria-label="Powiadomienia — w przygotowaniu" title="Powiadomienia — w przygotowaniu" className="rounded-xl p-2 text-brand-muted opacity-50"><Bell className="h-5 w-5"/></button><div className="flex items-center gap-2 rounded-xl border border-white/5 bg-white/[0.025] px-2.5 py-2"><div className="grid h-8 w-8 place-items-center rounded-full bg-brand-gold/15 text-xs font-bold text-brand-gold">{displayName.slice(0,1).toUpperCase()}</div><span className="hidden text-sm font-medium sm:block">{displayName}</span></div><button aria-label="Wyloguj" title="Wyloguj" onClick={()=>void getSupabaseClient()?.auth.signOut()} className="rounded-xl p-2 text-brand-muted hover:bg-white/5 hover:text-brand-text"><LogOut className="h-4 w-4"/></button></div>
         </header>
-        {activeView === 'dashboard' ? <DashboardView family={family} displayName={displayName} todayTasks={taskState.todayTasks} stats={taskState.stats} loading={taskState.loading} error={taskState.error} actionError={taskState.actionError} updatingIds={taskState.updatingIds} canCreateTasks={canCreateTasks} onQuickAdd={openQuickTask} onViewTasks={() => navigate('tasks')} onToggle={(task) => void taskState.toggleCompleted(task)} onDelete={setTaskToDelete} /> : null}
+        {activeView === 'dashboard' ? <DashboardView family={family} displayName={displayName} todayTasks={taskState.todayTasks} stats={taskState.stats} loading={taskState.loading} error={taskState.error} actionError={taskState.actionError} updatingIds={taskState.updatingIds} canCreateTasks={canCreateTasks} onQuickAdd={openQuickTask} onViewTasks={() => navigate('tasks')} onViewCalendar={() => navigate('calendar')} onToggle={(task) => void taskState.toggleCompleted(task)} onDelete={setTaskToDelete} /> : null}
+        {activeView === 'calendar' ? <CalendarView family={family} createRequest={calendarCreateRequest} onViewTask={() => navigate('tasks')} /> : null}
         {activeView === 'tasks' ? <TasksView family={family} tasks={taskState.tasks} loading={taskState.loading} error={taskState.error} actionError={taskState.actionError} updatingIds={taskState.updatingIds} canCreate={canCreateTasks} onQuickAdd={openQuickTask} onToggle={(task) => void taskState.toggleCompleted(task)} onDelete={setTaskToDelete} /> : null}
       </main>
       {adminOpen && canAdmin ? <AdminPanel family={family} onClose={()=>setAdminOpen(false)}/> : null}

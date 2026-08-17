@@ -42,3 +42,7 @@ Aktualna paczka zawiera logowanie, multi-family, role i panel administratora. In
 ## Sprint 2 — Dashboard + Tasks
 
 Dashboard korzysta z prawdziwych zadań Supabase, szybkiego dodawania i zmiany statusu. Osobny ekran „Zadania” udostępnia wszystkie zadania rodziny, grupowanie statusów i filtry. Przed uruchomieniem tej wersji ręcznie przejrzyj i zastosuj `database/migrations/0003_tasks.sql`. Szczegóły: `docs/09-sprint-2-tasks.md`.
+
+## Sprint 3 — Kalendarz rodzinny
+
+Widok miesiąca łączy wydarzenia z `calendar_events` z terminami istniejących zadań bez kopiowania danych. Obsługuje wydarzenia godzinowe, całodniowe i wielodniowe, agendę dnia, filtry oraz uprawnienia zgodne z RLS. Migracja `database/migrations/0004_calendar_events.sql` wymaga ręcznego review i wdrożenia. Szczegóły: `docs/10-sprint-3-calendar.md`.

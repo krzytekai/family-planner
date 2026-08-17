@@ -25,3 +25,9 @@ Polityki `public.tasks` realizują zasadę najmniejszych uprawnień:
 - klient nie ustala `completed_at`; znacznik czasu wykonania nadaje i utrzymuje prywatna funkcja triggerowa bazy.
 
 Grants i RLS działają razem: grants ograniczają dostępne operacje i kolumny, a policies ograniczają wiersze oraz wartości zapisu.
+
+## Calendar events
+
+`public.calendar_events` stosuje ten sam model izolacji rodziny. Aktywny członek może czytać, role `owner`/`admin`/`adult` mogą tworzyć, a aktualizacja i usunięcie wymagają roli `owner`/`admin` lub tożsamości twórcy. Dziecko nie może tworzyć wydarzeń ani zarządzać cudzymi.
+
+Klient nie przesyła pól systemowych. `created_by` ustawia baza z `auth.uid()`, a `family_id` i `created_by` są dodatkowo chronione prywatnym triggerem przed zmianą. Operacje frontendowe korzystają wyłącznie z zalogowanego klienta Supabase; RLS pozostaje źródłem autoryzacji.

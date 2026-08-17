@@ -11,7 +11,7 @@ Prawdziwe dane Supabase na dashboardzie, zadania rodzinne, szybkie dodawanie,
 przypisania, terminy, priorytety, status wykonania, statystyki i audyt zmian.
 
 ## Sprint 3 — Calendar
-Widok dzień/tydzień/miesiąc, wydarzenia, przypisania.
+Rodzinny widok miesiąca i agenda dnia, wydarzenia godzinowe, całodniowe oraz wielodniowe, terminy zadań, filtry, audyt i responsywna nawigacja. Widoki tygodnia i rozbudowana cykliczność pozostają na późniejszy etap.
 
 ## Sprint 4 — Dashboard rozszerzony
 Konfigurowalne widżety, aktywność rodziny i personalizacja skrótów.

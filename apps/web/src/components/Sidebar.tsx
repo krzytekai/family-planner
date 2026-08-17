@@ -3,7 +3,7 @@ import type { AppView } from '../app/navigation'
 
 const items = [
   { icon: Gauge, label: 'Dashboard', view: 'dashboard' },
-  { icon: CalendarDays, label: 'Kalendarz' },
+  { icon: CalendarDays, label: 'Kalendarz', view: 'calendar' },
   { icon: CheckSquare, label: 'Zadania', view: 'tasks' },
   { icon: ShoppingCart, label: 'Zakupy' },
   { icon: WalletCards, label: 'Budżet' },

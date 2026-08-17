@@ -8,6 +8,7 @@ Migracje są wykonywane kolejno i ręcznie zatwierdzane przed uruchomieniem na �
 2. `0001_auth_multifamily.sql`
 3. `0002_family_members_profiles_relation.sql`
 4. `0003_tasks.sql`
+5. `0004_calendar_events.sql`
 
 Codex przygotowuje pliki migracji, ale nie uruchamia ich samodzielnie na produkcyjnym projekcie Supabase.
 
@@ -46,3 +47,11 @@ Trigger `audit_task_change` zapisuje zdarzenia w `public.audit_logs`:
 - usunięcie: `task.deleted`.
 
 Metadane audytu nie zawierają treści opisu zadania. Przechowują status, priorytet, przypisanie i termin.
+
+## Calendar events
+
+`public.calendar_events` przechowuje wyłącznie wydarzenia rodzinne. Wydarzenia godzinowe używają `starts_at`/`ends_at` typu `timestamptz`, a całodniowe `start_date`/`end_date` typu `date`. Constraint wymusza użycie dokładnie jednego wariantu oraz poprawną kolejność końca i początku.
+
+Zadania z `due_at` nie są kopiowane do tej tabeli. Aplikacja pobiera oba źródła dla widocznego zakresu i łączy je w modelu `CalendarItem`.
+
+Trigger audytowy zapisuje `calendar_event.created`, `calendar_event.updated` i `calendar_event.deleted`. Metadane obejmują typ, wariant całodniowy, daty i lokalizację, ale nie opis.
