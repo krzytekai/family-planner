@@ -2,6 +2,7 @@ import type { FamilyRole } from '../../types/domain'
 
 export type TaskStatus = 'todo' | 'in_progress' | 'done'
 export type TaskPriority = 'low' | 'normal' | 'high'
+export type TaskFilter = 'all' | 'today' | 'mine' | 'active' | 'done'
 
 export interface TaskPerson {
   id: string

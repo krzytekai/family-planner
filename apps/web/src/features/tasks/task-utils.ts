@@ -1,5 +1,5 @@
 import type { FamilyRole } from '../../types/domain'
-import type { Task, TaskStats } from './types'
+import type { Task, TaskFilter, TaskStats, TaskStatus } from './types'
 
 export function isDueToday(dueAt: string | null, now = new Date()): boolean {
   if (!dueAt) return false
@@ -25,6 +25,29 @@ export function getTaskStats(tasks: Task[], now = new Date()): TaskStats {
   }
 }
 
+export function filterTasks(tasks: Task[], filter: TaskFilter, userId: string, now = new Date()): Task[] {
+  switch (filter) {
+    case 'today':
+      return tasks.filter((task) => isDueToday(task.dueAt, now))
+    case 'mine':
+      return tasks.filter((task) => task.assignedTo?.id === userId)
+    case 'active':
+      return tasks.filter((task) => task.status !== 'done')
+    case 'done':
+      return tasks.filter((task) => task.status === 'done')
+    default:
+      return tasks
+  }
+}
+
+export function groupTasksByStatus(tasks: Task[]): Record<TaskStatus, Task[]> {
+  return {
+    todo: tasks.filter((task) => task.status === 'todo'),
+    in_progress: tasks.filter((task) => task.status === 'in_progress'),
+    done: tasks.filter((task) => task.status === 'done'),
+  }
+}
+
 export function canUpdateTask(task: Task, userId: string, role: FamilyRole): boolean {
   return role === 'owner'
     || role === 'admin'
@@ -37,4 +60,17 @@ export function formatTaskTime(dueAt: string | null): string | null {
   const date = new Date(dueAt)
   if (Number.isNaN(date.getTime())) return null
   return new Intl.DateTimeFormat('pl-PL', { hour: '2-digit', minute: '2-digit' }).format(date)
+}
+
+export function formatTaskDateTime(value: string | null): string | null {
+  if (!value) return null
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  return new Intl.DateTimeFormat('pl-PL', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
 }

@@ -15,20 +15,23 @@ interface TodayTasksCardProps {
   currentUserRole: FamilyRole
   loading: boolean
   error: string | null
+  actionError: string | null
   updatingIds: Set<string>
   onToggle: (task: Task) => void
+  onViewAll: () => void
 }
 
-export function TodayTasksCard({ tasks, currentUserId, currentUserRole, loading, error, updatingIds, onToggle }: TodayTasksCardProps) {
+export function TodayTasksCard({ tasks, currentUserId, currentUserRole, loading, error, actionError, updatingIds, onToggle, onViewAll }: TodayTasksCardProps) {
   return (
     <article className="surface overflow-hidden rounded-2xl">
       <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
         <h2 className="font-semibold">Zadania na dziś</h2>
-        {!loading ? <span className="rounded-full bg-white/5 px-2.5 py-1 text-xs text-brand-muted">{tasks.length}</span> : null}
+        <div className="flex items-center gap-2">{!loading ? <span className="rounded-full bg-white/5 px-2.5 py-1 text-xs text-brand-muted">{tasks.length}</span> : null}<button type="button" onClick={onViewAll} className="text-xs font-medium text-brand-gold hover:underline">Zobacz wszystkie</button></div>
       </div>
 
       {loading ? <div className="space-y-3 p-5" aria-label="Ładowanie zadań"><div className="h-14 animate-pulse rounded-xl bg-white/[.035]" /><div className="h-14 animate-pulse rounded-xl bg-white/[.035]" /><div className="h-14 animate-pulse rounded-xl bg-white/[.035]" /></div> : null}
       {!loading && error ? <div className="p-5"><p role="alert" className="rounded-xl border border-red-400/15 bg-red-400/5 p-3 text-sm text-red-300">Nie udało się pobrać zadań: {error}</p></div> : null}
+      {!loading && !error && actionError ? <div className="px-5 pt-4"><p role="alert" className="rounded-xl border border-red-400/15 bg-red-400/5 p-3 text-sm text-red-300">{actionError}</p></div> : null}
       {!loading && !error && tasks.length === 0 ? <div className="p-8 text-center"><div className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-brand-gold/10 text-brand-gold"><Check className="h-5 w-5" /></div><p className="mt-3 text-sm font-medium">Brak zadań na dziś</p><p className="mt-1 text-xs text-brand-muted">Możesz spokojnie zaplanować kolejny krok.</p></div> : null}
 
       {!loading && !error && tasks.length > 0 ? (

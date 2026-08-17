@@ -6,6 +6,8 @@
 - audyt tworzenia, aktualizacji, wykonania i usuwania zadań,
 - feature-based frontend w `features/tasks`,
 - zadania na dziś pobierane z Supabase,
+- pełny ekran wszystkich zadań z grupami statusów i filtrami,
+- działająca nawigacja Dashboard/Zadania na desktopie i mobile,
 - szybkie dodawanie z terminem, priorytetem i przypisaniem,
 - wykonanie oraz cofnięcie wykonania,
 - prawdziwe statystyki aktywnych zadań i terminów na dziś,

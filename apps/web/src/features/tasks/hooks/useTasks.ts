@@ -11,6 +11,7 @@ export function useTasks(familyId: string) {
   const [saving, setSaving] = useState(false)
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(() => new Set())
   const [error, setError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
     const [nextTasks, nextMembers] = await Promise.all([
@@ -49,13 +50,13 @@ export function useTasks(familyId: string) {
 
   const createTask = useCallback(async (input: NewTaskInput) => {
     setSaving(true)
-    setError(null)
+    setActionError(null)
     try {
       await repository.createTask(input)
       await refresh()
     } catch (reason) {
       const message = reason instanceof Error ? reason.message : 'Nie udało się zapisać zadania.'
-      setError(message)
+      setActionError(message)
       throw new Error(message)
     } finally {
       setSaving(false)
@@ -64,12 +65,12 @@ export function useTasks(familyId: string) {
 
   const toggleCompleted = useCallback(async (task: Task) => {
     setUpdatingIds((current) => new Set(current).add(task.id))
-    setError(null)
+    setActionError(null)
     try {
       await repository.setTaskCompleted(familyId, task.id, task.status !== 'done')
       await refresh()
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Nie udało się zmienić statusu zadania.')
+      setActionError(reason instanceof Error ? reason.message : 'Nie udało się zmienić statusu zadania.')
     } finally {
       setUpdatingIds((current) => {
         const next = new Set(current)
@@ -91,6 +92,7 @@ export function useTasks(familyId: string) {
     saving,
     updatingIds,
     error,
+    actionError,
     createTask,
     toggleCompleted,
   }
