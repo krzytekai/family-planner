@@ -8,9 +8,10 @@ describe('mobile interface density', () => {
   it('keeps the navigation compact, evenly divided and safe-area aware', () => {
     const nav = source('src/components/MobileNav.tsx')
     const css = source('src/styles/index.css')
-    expect(nav).toContain('h-[60px] grid-cols-5')
-    expect(nav).toContain('h-12 w-12')
-    expect(nav).toContain('text-[10px]')
+    expect(nav).toContain('h-[54px] grid-cols-5')
+    expect(nav).toContain('h-11 w-11')
+    expect(nav).toContain('text-[9.5px]')
+    expect(nav).toContain('h-[18px] w-[18px]')
     expect(css).toContain('env(safe-area-inset-bottom, 0px)')
   })
 
@@ -20,7 +21,7 @@ describe('mobile interface density', () => {
     expect(row).toContain('h-11 w-11')
     expect(row).toContain('h-7 w-7')
     expect(row).toContain('h-10 w-10')
-    expect(view).toContain('h-8 shrink-0 whitespace-nowrap')
+    expect(view).toContain('h-[30px] shrink-0 whitespace-nowrap')
     expect(view).toContain('overflow-x-auto')
   })
 })
