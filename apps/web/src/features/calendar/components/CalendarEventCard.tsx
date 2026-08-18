@@ -1,4 +1,6 @@
-import { CalendarDays, Clock3, MapPin, Pencil, Trash2 } from 'lucide-react'
+import { BellRing, CalendarDays, Clock3, MapPin, Pencil, Trash2 } from 'lucide-react'
+import { formatNotificationDate } from '../../notifications/notification-utils'
+import type { Reminder } from '../../notifications/types'
 import { formatEventTime } from '../calendar-utils'
 import type { CalendarEvent } from '../types'
 
@@ -12,9 +14,11 @@ interface CalendarEventCardProps {
   onEdit: (event: CalendarEvent) => void
   onDelete: (event: CalendarEvent) => void
   compact?: boolean
+  reminder?: Reminder
+  onReminder?: (event: CalendarEvent) => void
 }
 
-export function CalendarEventCard({ event, canManage, onEdit, onDelete, compact = false }: CalendarEventCardProps) {
+export function CalendarEventCard({ event, canManage, onEdit, onDelete, compact = false, reminder, onReminder }: CalendarEventCardProps) {
   return (
     <article className={`rounded-2xl border border-brand-gold/10 bg-brand-gold/[.035] ${compact ? 'p-3' : 'p-4'}`}>
       <div className="flex items-start justify-between gap-3">
@@ -26,6 +30,7 @@ export function CalendarEventCard({ event, canManage, onEdit, onDelete, compact 
       </div>
       {!compact && event.description ? <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-brand-muted">{event.description}</p> : null}
       {!compact ? <p className="mt-3 text-xs text-brand-muted">Dodał(a): <span className="text-brand-text/80">{event.createdBy.displayName}</span></p> : null}
+      {!compact && onReminder ? <button type="button" onClick={() => onReminder(event)} className="mt-3 inline-flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-xs text-brand-muted hover:border-brand-gold/20 hover:text-brand-gold"><BellRing className="h-3.5 w-3.5"/>{reminder ? formatNotificationDate(reminder.remindAt) : 'Przypomnij'}</button> : null}
     </article>
   )
 }

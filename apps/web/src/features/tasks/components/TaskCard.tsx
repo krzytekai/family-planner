@@ -1,4 +1,6 @@
-import { CalendarClock, Check, RotateCcw, Trash2, UserRound } from 'lucide-react'
+import { BellRing, CalendarClock, Check, RotateCcw, Trash2, UserRound } from 'lucide-react'
+import { formatNotificationDate } from '../../notifications/notification-utils'
+import type { Reminder } from '../../notifications/types'
 import type { FamilyRole } from '../../../types/domain'
 import { canDeleteTask, canUpdateTask, formatTaskDateTime } from '../task-utils'
 import type { Task } from '../types'
@@ -28,9 +30,11 @@ interface TaskCardProps {
   updating: boolean
   onToggle: (task: Task) => void
   onDelete: (task: Task) => void
+  reminder?: Reminder
+  onReminder: (task: Task) => void
 }
 
-export function TaskCard({ task, currentUserId, currentUserRole, updating, onToggle, onDelete }: TaskCardProps) {
+export function TaskCard({ task, currentUserId, currentUserRole, updating, onToggle, onDelete, reminder, onReminder }: TaskCardProps) {
   const done = task.status === 'done'
   const canToggle = canUpdateTask(task, currentUserId, currentUserRole)
   const canDelete = canDeleteTask(task, currentUserId, currentUserRole)
@@ -58,16 +62,16 @@ export function TaskCard({ task, currentUserId, currentUserRole, updating, onTog
         {done ? <div className="sm:col-span-2 xl:col-span-1 2xl:col-span-2"><dt className="sr-only">Data wykonania</dt><dd className="text-brand-green">Wykonano: {completedAt ?? 'brak daty'}</dd></div> : null}
       </dl>
 
-      <button
+      <div className="mt-4 flex gap-2"><button type="button" onClick={() => onReminder(task)} className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-xs text-brand-muted hover:border-brand-gold/20 hover:text-brand-gold"><BellRing className="h-3.5 w-3.5"/>{reminder ? formatNotificationDate(reminder.remindAt) : 'Przypomnij'}</button><button
         type="button"
         disabled={!canToggle || updating}
         onClick={() => onToggle(task)}
         title={canToggle ? undefined : 'Nie masz uprawnień do zmiany tego zadania'}
-        className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-45 ${done ? 'border-white/10 text-brand-muted hover:bg-white/5' : 'border-brand-gold/20 text-brand-gold hover:bg-brand-gold/10'}`}
+        className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-45 ${done ? 'border-white/10 text-brand-muted hover:bg-white/5' : 'border-brand-gold/20 text-brand-gold hover:bg-brand-gold/10'}`}
       >
         {updating ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" /> : done ? <RotateCcw className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
         {updating ? 'Zapisywanie…' : done ? 'Cofnij wykonanie' : 'Oznacz jako wykonane'}
-      </button>
+      </button></div>
     </article>
   )
 }

@@ -37,3 +37,11 @@ Klient nie przesyła pól systemowych. `created_by` ustawia baza z `auth.uid()`,
 Każdy produkt ma zarówno `family_id`, jak i `list_id`, a composite FK wymusza ich zgodność z listą. Column grants blokują zmianę własności i pól systemowych po utworzeniu.
 
 RLS pozwala każdemu aktywnemu członkowi aktualizować produkt, aby możliwy był wspólny checkbox. Prywatny trigger stanowi dodatkową granicę: dla osoby innej niż owner/admin/twórca porównuje dane z `OLD` i dopuszcza wyłącznie zmianę `is_purchased`. Metadane zakupu pochodzą z sesji bazy, nie z klienta.
+
+## Notifications
+
+- Użytkownik czyta i zmienia stan odczytu wyłącznie własnych powiadomień w aktywnej rodzinie.
+- Przypomnienia są osobiste: odbiorca i twórca pochodzą z `auth.uid()`, nie z dowolnych pól klienta.
+- Trigger sprawdza, czy źródłowe zadanie lub wydarzenie należy do tej samej rodziny; usunięcie źródła usuwa oczekujące przypomnienia.
+- Tokeny urządzeń są widoczne i modyfikowalne tylko przez ich właściciela. Service role ani klucze FCM nie trafiają do przeglądarki.
+- Funkcje generujące skrzynkę i audyt działają jako `SECURITY DEFINER`, mają pusty `search_path`, jawnie kwalifikowane obiekty i brak `EXECUTE` dla ról publicznych.

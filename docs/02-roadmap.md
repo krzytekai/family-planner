@@ -16,11 +16,11 @@ Rodzinny widok miesiąca i agenda dnia, wydarzenia godzinowe, całodniowe oraz w
 ## Sprint 4 — Shopping
 Wiele rodzinnych list zakupów, produkty, kategorie tekstowe, status kupienia, archiwum, dashboard i responsywny UX. Realtime pozostaje późniejszym rozszerzeniem.
 
-## Sprint 5 — Dashboard rozszerzony
-Konfigurowalne widżety, aktywność rodziny i personalizacja skrótów.
+## Sprint 5 — Notifications + Reminders
+Trwałe centrum powiadomień, backendowe powiadomienia o przypisaniu zadania, osobiste przypomnienia, preferencje i model urządzeń gotowy pod Android/FCM. Natywna wysyłka push pozostaje etapem po dodaniu kontenera Android.
 
-## Sprint 6 — Notifications
-Powiadomienia in-app i później push.
+## Sprint 6 — Dashboard rozszerzony
+Konfigurowalne widżety, aktywność rodziny i personalizacja skrótów.
 
 ## Sprint 7 — Backup Center
 Zakresowy backup, szyfrowanie, historia i selektywne przywracanie.

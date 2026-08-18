@@ -10,6 +10,7 @@ Migracje są wykonywane kolejno i ręcznie zatwierdzane przed uruchomieniem na �
 4. `0003_tasks.sql`
 5. `0004_calendar_events.sql`
 6. `0005_shopping.sql`
+7. `0006_notifications.sql`
 
 Codex przygotowuje pliki migracji, ale nie uruchamia ich samodzielnie na produkcyjnym projekcie Supabase.
 
@@ -64,3 +65,9 @@ Trigger audytowy zapisuje `calendar_event.created`, `calendar_event.updated` i `
 `quantity` jest `numeric(10,3)` i, jeśli podane, musi być dodatnie. Kategorie i jednostki pozostają tekstowe, co pozwala później wprowadzić wartości użytkownika.
 
 Pola `purchased_by` i `purchased_at` są zarządzane przez `private.prepare_shopping_item_write()`. Przejście do kupionego zapisuje bieżącego użytkownika i czas, cofnięcie je zeruje, a zwykła edycja kupionego produktu zachowuje oryginalne metadane.
+
+## Notifications and reminders
+
+`public.notifications` jest trwałą skrzynką odbiorczą użytkownika, a `public.reminders` przechowuje osobiste, oczekujące przypomnienia do zadań i wydarzeń. `notification_devices` stanowi bezpieczny rejestr tokenów FCM/Web Push na przyszłość, natomiast `notification_preferences` przechowuje ustawienia per użytkownik i rodzina.
+
+Powiadomienie o przypisaniu zadania tworzy trigger bazy. Preferencja typu zdarzenia decyduje o utworzeniu kanonicznego `notification`; kanały `in_app_enabled` i `push_enabled` są rozdzielone. Terminy obsługuje wyłącznie `private.process_due_reminders(batch_size)`: funkcja wybiera rekordy `pending` z `FOR UPDATE SKIP LOCKED`, ponownie sprawdza aktywne członkostwo, deduplikuje wpis skrzynki i kończy przypomnienie jako `fired` albo `cancelled`. Funkcji nie udostępniono rolom `anon` ani `authenticated`; scheduler musi wywoływać ją w zaufanym kontekście bazy, np. co minutę przez Supabase Cron/pg_cron. Frontend nie używa timerów do dostarczania przypomnień.
