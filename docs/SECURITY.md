@@ -45,3 +45,7 @@ RLS pozwala każdemu aktywnemu członkowi aktualizować produkt, aby możliwy by
 - Trigger sprawdza, czy źródłowe zadanie lub wydarzenie należy do tej samej rodziny; usunięcie źródła usuwa oczekujące przypomnienia.
 - Tokeny urządzeń są widoczne i modyfikowalne tylko przez ich właściciela. Service role ani klucze FCM nie trafiają do przeglądarki.
 - Funkcje generujące skrzynkę i audyt działają jako `SECURITY DEFINER`, mają pusty `search_path`, jawnie kwalifikowane obiekty i brak `EXECUTE` dla ról publicznych.
+
+## Budget
+
+RLS dopuszcza dane finansowe wyłącznie dla aktywnych ról `owner`, `admin` i `adult`. Child nie może wykonać SELECT ani mutacji tabel budżetowych. Owner/admin zarządza planem i uczestnikami; adult tworzy transakcje, edytuje własne i może zapisać settlement tylko jako jego strona. Tabela snapshotów nie ma grantów mutacji dla klienta.

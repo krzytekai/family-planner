@@ -4,6 +4,8 @@
 
 Rodzinne centrum organizacji budowane jako bezpieczna, modułowa aplikacja multi-family.
 
+Moduły obejmują zadania, kalendarz, zakupy, powiadomienia oraz budżet rodzinny z rozliczaniem wspólnych wydatków. Budżet rozróżnia autora wpisu od faktycznego płatnika i zachowuje historyczne snapshoty uczestników.
+
 ## Sprint 0 — Foundation
 
 Aktualny zakres:

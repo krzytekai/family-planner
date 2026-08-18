@@ -3,6 +3,8 @@
 ## Warstwy
 UI → application/services → repositories → Supabase/PostgreSQL.
 
+Moduł `features/budget` zachowuje podział feature-based: repository odpowiada za authenticated Supabase API, hook za spójny refetch po mutacji i focusie, komponenty za responsywny UX, a czyste utils za obliczenia w integer cents. PostgreSQL odpowiada za tenant isolation, snapshot uczestników i audyt.
+
 UI nie importuje bezpośrednio zapytań do Supabase. Pozwala to wymienić backend bez przepisywania komponentów.
 
 ## Feature tasks

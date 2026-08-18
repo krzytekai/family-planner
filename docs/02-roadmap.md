@@ -24,3 +24,6 @@ Konfigurowalne widżety, aktywność rodziny i personalizacja skrótów.
 
 ## Sprint 7 — Backup Center
 Zakresowy backup, szyfrowanie, historia i selektywne przywracanie.
+
+## Sprint Budget — Budżet i rozliczenia
+Ewidencja przychodów i wydatków, miesięczne plany, snapshoty uczestników wspólnych zakupów, salda oraz sugerowane transfery dla dowolnej liczby dorosłych uczestników.

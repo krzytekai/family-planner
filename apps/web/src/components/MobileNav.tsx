@@ -1,21 +1,2 @@
-import { CalendarDays, CheckSquare, Home, Plus, ShoppingCart } from 'lucide-react'
-import type { AppView } from '../app/navigation'
-
-interface MobileNavProps {
-  activeView: AppView
-  canQuickAdd: boolean
-  onNavigate: (view: AppView) => void
-  onQuickAdd: () => void
-}
-
-export function MobileNav({ activeView, canQuickAdd, onNavigate, onQuickAdd }: MobileNavProps) {
-  return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-around border-t border-white/10 bg-[#0d0d13]/95 px-3 py-2 backdrop-blur lg:hidden">
-      <button type="button" onClick={() => onNavigate('dashboard')} className={`grid place-items-center gap-1 text-[10px] ${activeView === 'dashboard' ? 'text-brand-gold' : 'text-brand-muted'}`}><Home className="h-5 w-5" />Start</button>
-      <button type="button" onClick={() => onNavigate('calendar')} className={`grid place-items-center gap-1 text-[10px] ${activeView === 'calendar' ? 'text-brand-gold' : 'text-brand-muted'}`}><CalendarDays className="h-5 w-5" />Kalendarz</button>
-      <button type="button" disabled={!canQuickAdd} onClick={onQuickAdd} aria-label={activeView === 'calendar' ? 'Dodaj wydarzenie' : activeView === 'shopping' ? 'Dodaj produkt' : 'Dodaj szybkie zadanie'} title={canQuickAdd ? (activeView === 'calendar' ? 'Dodaj wydarzenie' : activeView === 'shopping' ? 'Dodaj produkt' : 'Dodaj szybkie zadanie') : 'Tworzenie jest dostępne dla dorosłych i administratorów'} className="grid h-12 w-12 place-items-center rounded-full bg-brand-gold text-black shadow-lg shadow-yellow-500/20 disabled:cursor-not-allowed disabled:opacity-40"><Plus className="h-6 w-6" /></button>
-      <button type="button" onClick={() => onNavigate('tasks')} className={`grid place-items-center gap-1 text-[10px] ${activeView === 'tasks' ? 'text-brand-gold' : 'text-brand-muted'}`}><CheckSquare className="h-5 w-5" />Zadania</button>
-      <button type="button" onClick={() => onNavigate('shopping')} className={`grid place-items-center gap-1 text-[10px] ${activeView === 'shopping' ? 'text-brand-gold' : 'text-brand-muted'}`}><ShoppingCart className="h-5 w-5" />Zakupy</button>
-    </nav>
-  )
-}
+import{useState}from'react';import{CalendarDays,CheckSquare,Home,MoreHorizontal,Plus,ShoppingCart,WalletCards,X}from'lucide-react';import type{AppView}from'../app/navigation'
+export function MobileNav({activeView,canBudget,canQuickAdd,onNavigate,onQuickAdd}:{activeView:AppView;canBudget:boolean;canQuickAdd:boolean;onNavigate:(v:AppView)=>void;onQuickAdd:()=>void}){const[more,setMore]=useState(false);const go=(v:AppView)=>{onNavigate(v);setMore(false)};const item=(view:AppView,label:string,Icon:typeof Home)=><button type="button" onClick={()=>go(view)} className={`grid place-items-center gap-1 text-[10px] ${activeView===view?'text-brand-gold':'text-brand-muted'}`}><Icon className="h-5 w-5"/>{label}</button>;return <>{more?<div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={()=>setMore(false)}><div className="absolute bottom-20 right-3 w-52 rounded-2xl border border-white/10 bg-[#13131b] p-2" onClick={e=>e.stopPropagation()}><div className="flex justify-end"><button onClick={()=>setMore(false)} aria-label="Zamknij menu"><X className="h-4 w-4"/></button></div><button onClick={()=>go('shopping')} className="flex w-full items-center gap-3 rounded-xl p-3 text-sm"><ShoppingCart className="h-4 w-4"/>Zakupy</button>{canBudget?<button onClick={()=>go('budget')} className="flex w-full items-center gap-3 rounded-xl p-3 text-sm"><WalletCards className="h-4 w-4"/>Budżet</button>:null}</div></div>:null}<nav className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-around border-t border-white/10 bg-[#0d0d13]/95 px-3 py-2 backdrop-blur lg:hidden">{item('dashboard','Start',Home)}{item('calendar','Kalendarz',CalendarDays)}<button type="button" disabled={!canQuickAdd} onClick={onQuickAdd} aria-label={activeView==='budget'?'Dodaj wydatek':activeView==='calendar'?'Dodaj wydarzenie':activeView==='shopping'?'Dodaj produkt':'Dodaj szybkie zadanie'} className="grid h-12 w-12 place-items-center rounded-full bg-brand-gold text-black disabled:opacity-40"><Plus className="h-6 w-6"/></button>{item('tasks','Zadania',CheckSquare)}<button onClick={()=>setMore(v=>!v)} className={`grid place-items-center gap-1 text-[10px] ${activeView==='shopping'||activeView==='budget'?'text-brand-gold':'text-brand-muted'}`}><MoreHorizontal className="h-5 w-5"/>Więcej</button></nav></>}

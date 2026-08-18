@@ -2,6 +2,8 @@
 
 Projekt przyjmuje OWASP ASVS 5.0.0 jako główną bazę wymagań weryfikacyjnych oraz OWASP Top 10:2025 jako model najczęstszych klas ryzyka.
 
+Dane finansowe mają podwyższony poziom ochrony. Dostęp otrzymują wyłącznie aktywni `owner`, `admin` i `adult`; rola `child` jest odrzucana przez RLS. Snapshotami wspólnych wydatków zarządza wyłącznie trigger bazy.
+
 ## Zasady
 - Least privilege i deny-by-default.
 - Supabase Auth zamiast własnego magazynu haseł.

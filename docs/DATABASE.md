@@ -11,6 +11,8 @@ Migracje są wykonywane kolejno i ręcznie zatwierdzane przed uruchomieniem na �
 5. `0004_calendar_events.sql`
 6. `0005_shopping.sql`
 7. `0006_notifications.sql`
+8. `0007_fix_due_reminders_processor.sql`
+9. `0008_budget.sql`
 
 Codex przygotowuje pliki migracji, ale nie uruchamia ich samodzielnie na produkcyjnym projekcie Supabase.
 
@@ -71,3 +73,7 @@ Pola `purchased_by` i `purchased_at` są zarządzane przez `private.prepare_shop
 `public.notifications` jest trwałą skrzynką odbiorczą użytkownika, a `public.reminders` przechowuje osobiste, oczekujące przypomnienia do zadań i wydarzeń. `notification_devices` stanowi bezpieczny rejestr tokenów FCM/Web Push na przyszłość, natomiast `notification_preferences` przechowuje ustawienia per użytkownik i rodzina.
 
 Powiadomienie o przypisaniu zadania tworzy trigger bazy. Preferencja typu zdarzenia decyduje o utworzeniu kanonicznego `notification`; kanały `in_app_enabled` i `push_enabled` są rozdzielone. Terminy obsługuje wyłącznie `private.process_due_reminders(batch_size)`: funkcja wybiera rekordy `pending` z `FOR UPDATE SKIP LOCKED`, ponownie sprawdza aktywne członkostwo, deduplikuje wpis skrzynki i kończy przypomnienie jako `fired` albo `cancelled`. Funkcji nie udostępniono rolom `anon` ani `authenticated`; scheduler musi wywoływać ją w zaufanym kontekście bazy, np. co minutę przez Supabase Cron/pg_cron. Frontend nie używa timerów do dostarczania przypomnień.
+
+## Budget
+
+`budget_transactions` przechowuje przychody i wydatki, `budget_plans` miesięczne limity, `budget_settlements` transfery wyrównujące, a `budget_settlement_members` bieżącą konfigurację. `budget_expense_participants` jest niezmiennym snapshotem składu konkretnego wspólnego wydatku i ma tenant-safe composite FK. `paid_by` wskazuje płatnika, a `created_by` autora wpisu.
