@@ -63,7 +63,7 @@ export function AdminPanel({ family, onClose }: { family: FamilyContext; onClose
 
   return (
     <div className="fixed inset-0 z-[70] bg-black/70 p-3 backdrop-blur-sm sm:p-6">
-      <section className="surface mx-auto flex h-full max-w-5xl flex-col overflow-hidden rounded-3xl">
+      <section className="mobile-admin-panel surface mx-auto flex h-full max-w-5xl flex-col overflow-hidden rounded-3xl">
         <header className="flex items-center justify-between border-b border-white/5 px-5 py-4"><div><div className="flex items-center gap-2 font-semibold"><ShieldCheck className="h-5 w-5 text-brand-gold"/>Administracja rodziny</div><p className="mt-1 text-xs text-brand-muted">{family.familyName}</p></div><button onClick={onClose} className="rounded-xl p-2 hover:bg-white/5"><X className="h-5 w-5"/></button></header>
         <div className="grid flex-1 gap-5 overflow-auto p-5 lg:grid-cols-[1fr_.85fr]">
           <div><h2 className="mb-3 font-semibold">Użytkownicy</h2><div className="space-y-2">{members.map((m)=><div key={m.userId} className="flex items-center justify-between rounded-2xl border border-white/5 bg-black/20 p-4"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-full bg-brand-gold/10 text-brand-gold"><UserRound className="h-5 w-5"/></div><div><div className="text-sm font-medium">{m.displayName}</div><div className="text-xs text-brand-muted">{m.email ?? '—'} • {m.role}</div></div></div><span className={`rounded-full px-2 py-1 text-[11px] ${m.status==='active'?'bg-brand-green/10 text-brand-green':'bg-red-500/10 text-red-300'}`}>{m.status}</span></div>)}</div></div>

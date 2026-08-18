@@ -40,6 +40,132 @@ button { cursor: pointer; }
   .mobile-nav-safe-content { padding-bottom: 2rem; }
 }
 
+@media (max-width: 639px) {
+  .app-mobile-density .app-topbar {
+    height: 64px;
+    padding-inline: 12px;
+  }
+
+  .app-mobile-density .app-avatar-shell {
+    padding: 4px;
+    border-radius: 10px;
+  }
+
+  .app-mobile-density .app-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 10px;
+  }
+
+  .app-mobile-density main > div {
+    padding: 12px;
+  }
+
+  .app-mobile-density main h1 {
+    font-size: 15px;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+
+  .app-mobile-density main h2 { font-size: 14px; line-height: 1.3; }
+  .app-mobile-density main h3 { font-size: 13px; line-height: 1.3; }
+
+  .app-mobile-density .surface {
+    border-color: rgba(255,216,77,.065);
+    border-radius: 12px;
+    box-shadow: 0 10px 32px rgba(0,0,0,.16);
+  }
+
+  .app-mobile-density main .surface[class~="p-4"],
+  .app-mobile-density main .surface[class~="p-5"] { padding: 10px; }
+
+  .app-mobile-density .mobile-card {
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .app-mobile-density .mobile-card-title { font-size: 13px; line-height: 1.25; }
+  .app-mobile-density .mobile-secondary { font-size: 10.5px; line-height: 1.35; }
+  .app-mobile-density .mobile-metadata { font-size: 9.5px; line-height: 1.3; }
+
+  .app-mobile-density .mobile-stat-card > div:first-child { margin-bottom: 6px; font-size: 10.5px; }
+  .app-mobile-density .mobile-stat-card > div:nth-child(2) { font-size: 18px; line-height: 1; }
+  .app-mobile-density .mobile-stat-card > p { margin-top: 3px; font-size: 9.5px; line-height: 1.25; }
+
+  .app-mobile-density .mobile-task-card h3 { font-size: 13.5px; line-height: 1.25; }
+  .app-mobile-density .mobile-task-card p { margin-top: 4px; font-size: 10.5px; line-height: 1.35; }
+  .app-mobile-density .mobile-task-card dl,
+  .app-mobile-density .mobile-task-card > div + div { margin-top: 8px; font-size: 10px; }
+
+  .app-mobile-density .mobile-dashboard-card > header,
+  .app-mobile-density .mobile-dashboard-card > footer,
+  .app-mobile-density .mobile-dashboard-card > div > div { padding: 10px; }
+  .app-mobile-density .mobile-dashboard-card > div > div + div { padding-top: 8px; }
+
+  .app-mobile-density .mobile-calendar-weekday { padding-block: 5px; font-size: 9.5px; }
+  .app-mobile-density .mobile-calendar-cell { min-height: 52px; padding: 3px; }
+  .app-mobile-density .mobile-calendar-cell > button { width: 26px; height: 26px; font-size: 11px; }
+
+  .app-mobile-density [role="group"] > button,
+  .app-mobile-density .mobile-chip {
+    height: 28px;
+    padding: 0 9px;
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .app-mobile-density main [class*="overflow-x-auto"] > button[class~="rounded-full"] {
+    min-height: 28px;
+    padding: 4px 9px;
+    font-size: 11px;
+  }
+
+  .app-mobile-density .mobile-cta,
+  .app-mobile-density main button[class*="bg-brand-gold"] {
+    min-height: 40px;
+    padding-block: 7px;
+    font-size: 13px;
+  }
+
+  .app-mobile-density [role="dialog"] {
+    padding: 14px;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .app-mobile-density [role="dialog"] h2 { font-size: 15px; line-height: 1.25; }
+  .app-mobile-density [role="dialog"] header { margin-bottom: 12px; }
+  .app-mobile-density [role="dialog"] form { font-size: 12px; }
+  .app-mobile-density [role="dialog"] form > * + * { margin-top: 12px; }
+  .app-mobile-density [role="dialog"] label { font-size: 11px; }
+  .app-mobile-density [role="dialog"] input:not([type="checkbox"]),
+  .app-mobile-density [role="dialog"] select {
+    min-height: 40px;
+    padding-block: 8px;
+    font-size: 13px;
+  }
+  .app-mobile-density [role="dialog"] textarea {
+    padding-block: 8px;
+    font-size: 13px;
+  }
+  .app-mobile-density [role="dialog"] button {
+    min-height: 40px;
+    font-size: 12px;
+  }
+
+  .app-mobile-density aside[role="dialog"] section { margin-top: 16px; }
+  .app-mobile-density aside[role="dialog"] article { padding: 10px; border-radius: 12px; }
+  .app-mobile-density aside[role="dialog"] article + article { margin-top: 6px; }
+  .app-mobile-density aside[role="dialog"] [class~="text-sm"] { font-size: 12.5px; }
+  .app-mobile-density aside[role="dialog"] [class~="text-xs"] { font-size: 10.5px; }
+  .app-mobile-density aside[role="dialog"] label { padding: 10px; }
+  .app-mobile-density aside[role="dialog"] section[class~="border-t"] { margin-top: 16px; padding-top: 12px; }
+
+  .app-mobile-density .mobile-admin-panel > header { padding: 10px 12px; }
+  .app-mobile-density .mobile-admin-panel > div { gap: 12px; padding: 12px; }
+  .app-mobile-density .mobile-admin-panel form { padding: 10px; }
+  .app-mobile-density .mobile-admin-panel [class~="p-4"] { padding: 10px; }
+}
+
 .budget-dark-select {
   color-scheme: dark;
   color: #f5f7fa;

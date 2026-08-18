@@ -20,6 +20,6 @@ export function StatCard({ icon: Icon, label, value, detail, onClick }: StatCard
     </>
   )
 
-  if (onClick) return <button type="button" onClick={onClick} className="surface rounded-2xl p-4 text-left transition hover:-translate-y-0.5 hover:border-brand-gold/30 md:p-5">{content}</button>
-  return <article className="surface rounded-2xl p-4 md:p-5">{content}</article>
+  if (onClick) return <button type="button" onClick={onClick} className="mobile-card mobile-stat-card surface rounded-2xl p-4 text-left transition hover:-translate-y-0.5 hover:border-brand-gold/30 md:p-5">{content}</button>
+  return <article className="mobile-card mobile-stat-card surface rounded-2xl p-4 md:p-5">{content}</article>
 }

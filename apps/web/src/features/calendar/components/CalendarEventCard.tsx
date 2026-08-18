@@ -20,7 +20,7 @@ interface CalendarEventCardProps {
 
 export function CalendarEventCard({ event, canManage, onEdit, onDelete, compact = false, reminder, onReminder }: CalendarEventCardProps) {
   return (
-    <article className={`rounded-2xl border border-brand-gold/10 bg-brand-gold/[.035] ${compact ? 'p-3' : 'p-4'}`}>
+    <article className={`mobile-card rounded-2xl border border-brand-gold/10 bg-brand-gold/[.035] ${compact ? 'p-3' : 'p-4'}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2"><CalendarDays className="h-4 w-4 shrink-0 text-brand-gold"/><h3 className="truncate font-medium">{event.title}</h3></div>

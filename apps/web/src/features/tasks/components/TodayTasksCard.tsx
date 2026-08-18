@@ -24,7 +24,7 @@ interface TodayTasksCardProps {
 
 export function TodayTasksCard({ tasks, currentUserId, currentUserRole, loading, error, actionError, updatingIds, onToggle, onDelete, onViewAll }: TodayTasksCardProps) {
   return (
-    <article className="surface overflow-hidden rounded-2xl">
+    <article className="mobile-dashboard-card surface overflow-hidden rounded-2xl">
       <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
         <h2 className="font-semibold">Zadania na dziś</h2>
         <div className="flex items-center gap-2">{!loading ? <span className="rounded-full bg-white/5 px-2.5 py-1 text-xs text-brand-muted">{tasks.length}</span> : null}<button type="button" onClick={onViewAll} className="text-xs font-medium text-brand-gold hover:underline">Zobacz wszystkie</button></div>

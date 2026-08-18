@@ -42,13 +42,13 @@ export function TaskCard({ task, currentUserId, currentUserRole, updating, onTog
   const completedAt = formatTaskDateTime(task.completedAt)
 
   return (
-    <article className="rounded-2xl border border-white/[.07] bg-black/20 p-4 transition hover:border-brand-gold/15">
+    <article className="mobile-card mobile-task-card rounded-2xl border border-white/[.07] bg-black/20 p-4 transition hover:border-brand-gold/15">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className={`font-medium leading-snug ${done ? 'text-brand-muted line-through' : 'text-brand-text'}`}>{task.title}</h3>
           {task.description ? <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-brand-muted">{task.description}</p> : null}
         </div>
-        <div className="flex shrink-0 items-center gap-1"><span className={`rounded-full px-2 py-1 text-[10px] font-medium ${done ? 'bg-brand-green/10 text-brand-green' : task.status === 'in_progress' ? 'bg-blue-400/10 text-blue-300' : 'bg-brand-gold/10 text-brand-gold'}`}>{statusLabels[task.status]}</span>{canDelete ? <button type="button" onClick={() => onDelete(task)} aria-label={`Usuń zadanie: ${task.title}`} title="Usuń zadanie" className="rounded-lg p-1.5 text-brand-muted transition hover:bg-red-400/10 hover:text-red-300"><Trash2 className="h-3.5 w-3.5" /></button> : null}</div>
+        <div className="flex shrink-0 items-center gap-1"><span className={`rounded-full px-2 py-1 text-[10px] font-medium ${done ? 'bg-brand-green/10 text-brand-green' : task.status === 'in_progress' ? 'bg-blue-400/10 text-blue-300' : 'bg-brand-gold/10 text-brand-gold'}`}>{statusLabels[task.status]}</span>{canDelete ? <button type="button" onClick={() => onDelete(task)} aria-label={`Usuń zadanie: ${task.title}`} title="Usuń zadanie" className="grid h-10 w-10 place-items-center rounded-lg text-brand-muted transition hover:bg-red-400/10 hover:text-red-300"><Trash2 className="h-[17px] w-[17px]" /></button> : null}</div>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
