@@ -32,6 +32,14 @@ button { cursor: pointer; }
 .gold-glow { box-shadow: 0 0 35px rgba(255,216,77,.13); }
 .scrollbar-none::-webkit-scrollbar { display: none; }
 
+.mobile-nav { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.mobile-nav-safe-content { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+.mobile-more-menu { bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+
+@media (min-width: 1024px) {
+  .mobile-nav-safe-content { padding-bottom: 2rem; }
+}
+
 .budget-dark-select {
   color-scheme: dark;
   color: #f5f7fa;
