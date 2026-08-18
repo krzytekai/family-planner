@@ -31,3 +31,9 @@ Grants i RLS działają razem: grants ograniczają dostępne operacje i kolumny,
 `public.calendar_events` stosuje ten sam model izolacji rodziny. Aktywny członek może czytać, role `owner`/`admin`/`adult` mogą tworzyć, a aktualizacja i usunięcie wymagają roli `owner`/`admin` lub tożsamości twórcy. Dziecko nie może tworzyć wydarzeń ani zarządzać cudzymi.
 
 Klient nie przesyła pól systemowych. `created_by` ustawia baza z `auth.uid()`, a `family_id` i `created_by` są dodatkowo chronione prywatnym triggerem przed zmianą. Operacje frontendowe korzystają wyłącznie z zalogowanego klienta Supabase; RLS pozostaje źródłem autoryzacji.
+
+## Shopping
+
+Każdy produkt ma zarówno `family_id`, jak i `list_id`, a composite FK wymusza ich zgodność z listą. Column grants blokują zmianę własności i pól systemowych po utworzeniu.
+
+RLS pozwala każdemu aktywnemu członkowi aktualizować produkt, aby możliwy był wspólny checkbox. Prywatny trigger stanowi dodatkową granicę: dla osoby innej niż owner/admin/twórca porównuje dane z `OLD` i dopuszcza wyłącznie zmianę `is_purchased`. Metadane zakupu pochodzą z sesji bazy, nie z klienta.

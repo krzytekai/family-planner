@@ -13,11 +13,11 @@ przypisania, terminy, priorytety, status wykonania, statystyki i audyt zmian.
 ## Sprint 3 — Calendar
 Rodzinny widok miesiąca i agenda dnia, wydarzenia godzinowe, całodniowe oraz wielodniowe, terminy zadań, filtry, audyt i responsywna nawigacja. Widoki tygodnia i rozbudowana cykliczność pozostają na późniejszy etap.
 
-## Sprint 4 — Dashboard rozszerzony
-Konfigurowalne widżety, aktywność rodziny i personalizacja skrótów.
+## Sprint 4 — Shopping
+Wiele rodzinnych list zakupów, produkty, kategorie tekstowe, status kupienia, archiwum, dashboard i responsywny UX. Realtime pozostaje późniejszym rozszerzeniem.
 
-## Sprint 5 — Shopping
-Wspólne listy zakupów i synchronizacja realtime.
+## Sprint 5 — Dashboard rozszerzony
+Konfigurowalne widżety, aktywność rodziny i personalizacja skrótów.
 
 ## Sprint 6 — Notifications
 Powiadomienia in-app i później push.

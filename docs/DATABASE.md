@@ -9,6 +9,7 @@ Migracje są wykonywane kolejno i ręcznie zatwierdzane przed uruchomieniem na �
 3. `0002_family_members_profiles_relation.sql`
 4. `0003_tasks.sql`
 5. `0004_calendar_events.sql`
+6. `0005_shopping.sql`
 
 Codex przygotowuje pliki migracji, ale nie uruchamia ich samodzielnie na produkcyjnym projekcie Supabase.
 
@@ -55,3 +56,11 @@ Metadane audytu nie zawierają treści opisu zadania. Przechowują status, prior
 Zadania z `due_at` nie są kopiowane do tej tabeli. Aplikacja pobiera oba źródła dla widocznego zakresu i łączy je w modelu `CalendarItem`.
 
 Trigger audytowy zapisuje `calendar_event.created`, `calendar_event.updated` i `calendar_event.deleted`. Metadane obejmują typ, wariant całodniowy, daty i lokalizację, ale nie opis.
+
+## Shopping
+
+`public.shopping_lists` przechowuje wiele list jednej rodziny. `public.shopping_items` wskazuje listę przez composite FK `(list_id, family_id) → shopping_lists(id, family_id)`, więc nawet przy błędnym żądaniu produkt nie może przejść między tenantami.
+
+`quantity` jest `numeric(10,3)` i, jeśli podane, musi być dodatnie. Kategorie i jednostki pozostają tekstowe, co pozwala później wprowadzić wartości użytkownika.
+
+Pola `purchased_by` i `purchased_at` są zarządzane przez `private.prepare_shopping_item_write()`. Przejście do kupionego zapisuje bieżącego użytkownika i czas, cofnięcie je zeruje, a zwykła edycja kupionego produktu zachowuje oryginalne metadane.

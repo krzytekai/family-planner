@@ -36,5 +36,15 @@ Projekt przyjmuje OWASP ASVS 5.0.0 jako główną bazę wymagań weryfikacyjnych
 - Column grants wykluczają modyfikację `id`, `family_id`, `created_by`, `created_at` oraz `updated_at`.
 - Prywatne funkcje triggerowe normalizują zapis i tworzą audyt bez przyznawania `authenticated` dostępu do schematu `private`.
 
+## Lista zakupów
+
+- `shopping_lists` i `shopping_items` mają RLS oraz brak dostępu `anon`.
+- Composite FK `(list_id, family_id)` blokuje przypisanie produktu do listy innej rodziny.
+- Listy tworzą role dorosłe; zarządzają nimi owner/admin/twórca.
+- Każdy aktywny członek, w tym child, może dodać produkt i zmienić wyłącznie `is_purchased`.
+- Trigger porównuje `OLD/NEW` i odrzuca zmianę danych produktu przez osobę niebędącą owner/admin/twórcą.
+- `purchased_by` i `purchased_at` są poza grantami klienta i ustawia je wyłącznie trigger z `auth.uid()`.
+- Audyt jest bazodanowy; frontend nie zapisuje `audit_logs`.
+
 ## Backup
 Backup nie może przechowywać haseł użytkowników. Eksporty zawierające dane prywatne będą szyfrowane przed trwałym przechowaniem.

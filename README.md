@@ -46,3 +46,7 @@ Dashboard korzysta z prawdziwych zadań Supabase, szybkiego dodawania i zmiany s
 ## Sprint 3 — Kalendarz rodzinny
 
 Widok miesiąca łączy wydarzenia z `calendar_events` z terminami istniejących zadań bez kopiowania danych. Obsługuje wydarzenia godzinowe, całodniowe i wielodniowe, agendę dnia, filtry oraz uprawnienia zgodne z RLS. Migracja `database/migrations/0004_calendar_events.sql` wymaga ręcznego review i wdrożenia. Szczegóły: `docs/10-sprint-3-calendar.md`.
+
+## Sprint 4 — Lista zakupów
+
+Moduł obsługuje wiele rodzinnych list, produkty, ilości, kategorie, oznaczanie jako kupione, archiwizację i bezpieczne uprawnienia dla wszystkich ról. Migracja `database/migrations/0005_shopping.sql` wymaga ręcznego review i wdrożenia. Szczegóły: `docs/11-sprint-4-shopping.md`.

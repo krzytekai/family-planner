@@ -5,7 +5,7 @@ const items = [
   { icon: Gauge, label: 'Dashboard', view: 'dashboard' },
   { icon: CalendarDays, label: 'Kalendarz', view: 'calendar' },
   { icon: CheckSquare, label: 'Zadania', view: 'tasks' },
-  { icon: ShoppingCart, label: 'Zakupy' },
+  { icon: ShoppingCart, label: 'Zakupy', view: 'shopping' },
   { icon: WalletCards, label: 'Budżet' },
   { icon: FileText, label: 'Dokumenty' },
   { icon: Car, label: 'Garaż' },

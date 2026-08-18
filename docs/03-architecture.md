@@ -20,6 +20,12 @@ Kod kalendarza znajduje się w `apps/web/src/features/calendar`: repozytorium od
 
 Frontendowy `CalendarItem` jest unią rozłączną `event | task`. Łączenie następuje wyłącznie w pamięci dla aktualnie widocznego zakresu siatki miesiąca.
 
+## Feature shopping
+
+`apps/web/src/features/shopping` dzieli moduł na repozytorium Supabase, hook stanu, testowalne utilities i komponenty widoku/modalów. `ShoppingView` pracuje na jednej wybranej liście, dzięki czemu produkty różnych list nie mieszają się. Dashboard używa lekkiego zapytania podglądowego zwracającego licznik i maksymalnie pięć niekupionych pozycji.
+
+Centralny przycisk mobile wysyła do aktywnego feature wyłącznie sygnał otwarcia właściwego formularza. Logika zapisu i uprawnień pozostaje poza `App.tsx`.
+
 ## Multi-family
 Każdy rekord domenowy związany z rodziną posiada `family_id`. Dostęp jest weryfikowany przez RLS na podstawie tabeli `family_members`.
 
@@ -27,3 +33,4 @@ Każdy rekord domenowy związany z rodziną posiada `family_id`. Dostęp jest we
 Rekordy domenowe standardowo posiadają `created_by`, `updated_by`, `created_at`, `updated_at`.
 Zdarzenia zadań są zapisywane przez trigger PostgreSQL, dlatego audyt obejmuje każdą dozwoloną ścieżkę zapisu, a nie tylko bieżący frontend.
 Analogicznie zmiany `calendar_events` audytuje prywatna funkcja triggerowa bazy.
+Listy i produkty zakupowe również są audytowane przez prywatne triggery, w tym osobne zdarzenia kupienia i cofnięcia kupienia.
