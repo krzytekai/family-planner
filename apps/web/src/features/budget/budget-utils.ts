@@ -1,4 +1,4 @@
-import type { BudgetFilter, BudgetPlan, BudgetTransaction } from './types'
+import type { BudgetFilter, BudgetPlan, BudgetTransaction, TransactionType } from './types'
 
 export function decimalToCents(value: string | number): number {
   const normalized = String(value).trim().replace(/\s/g, '').replace(',', '.')
@@ -14,6 +14,7 @@ export function formatBudgetMonth(month: Date) { return new Intl.DateTimeFormat(
 export function filterBudgetTransactions(items: BudgetTransaction[], filter: BudgetFilter, userId: string) { return items.filter((item) => filter === 'all' || filter === item.type || (filter === 'shared' && item.shared) || (filter === 'mine' && (item.createdBy.id === userId || item.paidBy?.id === userId))) }
 export function budgetSummary(items: BudgetTransaction[], plans: BudgetPlan[]) { const expenses = items.filter((i) => i.type === 'expense').reduce((sum, i) => sum + i.amountCents, 0); const income = items.filter((i) => i.type === 'income').reduce((sum, i) => sum + i.amountCents, 0); const shared = items.filter((i) => i.shared).reduce((sum, i) => sum + i.amountCents, 0); const plan = plans.filter((p) => p.type === 'expense_limit' && !p.category).reduce((sum, p) => sum + p.amountCents, 0); return { expenses, income, shared, plan, balance: income - expenses, usedPercent: plan > 0 ? expenses / plan * 100 : null } }
 export function defaultPaidBy(currentUserId: string) { return currentUserId }
+export function defaultShared(type: TransactionType, existingValue?: boolean) { return existingValue ?? type === 'expense' }
 export function canViewBudget(role: string) { return role === 'owner' || role === 'admin' || role === 'adult' }
 export function canManageBudgetRecord(role: string, creatorId: string, userId: string) { return role === 'owner' || role === 'admin' || creatorId === userId }
 export function canManageBudgetConfiguration(role: string) { return role === 'owner' || role === 'admin' }
