@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { LogOut, Search } from 'lucide-react'
 import { MobileNav } from '../components/MobileNav'
@@ -27,6 +27,7 @@ import { getSupabaseClient } from '../lib/supabase'
 import type { AppView } from './navigation'
 import { BudgetView } from '../features/budget/components/BudgetView'
 import { canViewBudget } from '../features/budget/budget-utils'
+import { NATIVE_BACK_EVENT, useNativeBackButton } from './native-platform'
 
 function Planner({ session }: { session: Session }) {
   const { family, loading, error } = useFamilyContext(session.user.id)
@@ -51,15 +52,34 @@ function FamilyPlanner({ family, canAdmin, adminOpen, setAdminOpen, displayName 
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false)
   const [reminderSource, setReminderSource] = useState<ReminderSource | null>(null)
+  const viewHistory = useRef<AppView[]>(['dashboard'])
   const canCreateTasks = family.role === 'owner' || family.role === 'admin' || family.role === 'adult'
   const canBudget = canViewBudget(family.role)
 
-  function navigate(view: AppView) { if (view === 'budget' && !canBudget) return; setActiveView(view); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  function showView(view: AppView) { setActiveView(view); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  function navigate(view: AppView) { if ((view === 'budget' && !canBudget) || view === activeView) return; viewHistory.current.push(view); showView(view) }
   function openQuickTask() { if (canCreateTasks) setQuickTaskOpen(true) }
   function openContextualQuickAdd() { if (activeView === 'calendar') setCalendarCreateRequest((value) => value + 1); else if (activeView === 'shopping') setShoppingCreateRequest((value) => value + 1); else if (activeView === 'budget' && canBudget) setBudgetCreateRequest((value) => value + 1); else openQuickTask() }
   function remindTask(task: Task) { setReminderSource({ type: 'task', id: task.id, title: task.title, occursAt: task.dueAt }) }
   function remindEvent(event: CalendarEvent) { setReminderSource({ type: 'calendar_event', id: event.id, title: event.title, occursAt: event.allDay && event.startDate ? new Date(`${event.startDate}T09:00:00`).toISOString() : event.startsAt }) }
   function editReminder(reminder: Reminder) { setReminderSource({ type: reminder.sourceType, id: reminder.sourceId, title: reminder.title?.replace(/^Przypomnienie: /, '') ?? 'Wpis', occursAt: reminder.remindAt }) }
+
+  useNativeBackButton(() => {
+    if (reminderSource) { setReminderSource(null); return }
+    if (notificationCenterOpen) { setNotificationCenterOpen(false); return }
+    if (taskToDelete) { setTaskToDelete(null); return }
+    if (quickTaskOpen) { setQuickTaskOpen(false); return }
+    if (adminOpen) { setAdminOpen(false); return }
+
+    const overlayBack = new Event(NATIVE_BACK_EVENT, { cancelable: true })
+    window.dispatchEvent(overlayBack)
+    if (overlayBack.defaultPrevented) return
+
+    if (viewHistory.current.length > 1) {
+      viewHistory.current.pop()
+      showView(viewHistory.current.at(-1) ?? 'dashboard')
+    }
+  })
 
   return <div className="app-mobile-density min-h-screen bg-brand-bg text-brand-text">
     <Sidebar familyName={family.familyName} canAdmin={canAdmin} canBudget={canBudget} activeView={activeView} onNavigate={navigate} onAdmin={() => setAdminOpen(true)}/>

@@ -10,6 +10,7 @@ import { CalendarDay } from './CalendarDay'
 import { CalendarEventModal } from './CalendarEventModal'
 import { CalendarMonth } from './CalendarMonth'
 import { DeleteCalendarEventModal } from './DeleteCalendarEventModal'
+import { useNativeBackDismiss } from '../../../app/native-platform'
 
 const filters: Array<{ value: CalendarFilter; label: string }> = [
   { value: 'all', label: 'Wszystko' }, { value: 'events', label: 'Wydarzenia' },
@@ -29,6 +30,7 @@ export function CalendarView({ family, createRequest, reminders, onViewTask, onR
   const range = useMemo(() => getMonthGridRange(month), [month])
   const calendar = useCalendar(family.familyId, range.start, range.end)
   const canCreate = canCreateCalendarEvent(family.role)
+  useNativeBackDismiss(Boolean(deleting || editor), () => { if (deleting) setDeleting(null); else setEditor(null) })
   useEffect(() => { if (createRequest !== handledCreateRequest.current) { handledCreateRequest.current = createRequest; if (canCreate) setEditor({ event: null, date: selectedDate }) } }, [canCreate, createRequest, selectedDate])
   const allItems = useMemo(() => days.flatMap((date) => itemsForDate(calendar.events, calendar.tasks, date)), [calendar.events, calendar.tasks, days])
   const filtered = useMemo(() => filterCalendarItems(allItems, filter, family.userId), [allItems, family.userId, filter])

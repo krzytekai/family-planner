@@ -10,7 +10,7 @@
 
 * { box-sizing: border-box; }
 html { background: #0a0a0f; }
-body { margin: 0; min-width: 320px; min-height: 100vh; background: #0a0a0f; }
+body { margin: 0; min-width: 320px; min-height: 100vh; min-height: 100dvh; background: #0a0a0f; }
 button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 
@@ -32,9 +32,24 @@ button { cursor: pointer; }
 .gold-glow { box-shadow: 0 0 35px rgba(255,216,77,.13); }
 .scrollbar-none::-webkit-scrollbar { display: none; }
 
-.mobile-nav { padding-bottom: env(safe-area-inset-bottom, 0px); }
-.mobile-nav-safe-content { padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
-.mobile-more-menu { bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+.mobile-nav { padding-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)); }
+.mobile-nav-safe-content { padding-bottom: calc(60px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))); }
+.mobile-more-menu { bottom: calc(56px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))); }
+
+.capacitor-native body {
+  padding-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  padding-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+}
+
+.capacitor-native .app-topbar {
+  height: calc(80px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
+  padding-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+}
+
+.capacitor-native [role="dialog"] {
+  max-height: calc(100dvh - var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) - var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+  overflow-y: auto;
+}
 
 @media (min-width: 1024px) {
   .mobile-nav-safe-content { padding-bottom: 2rem; }
@@ -44,6 +59,10 @@ button { cursor: pointer; }
   .app-mobile-density .app-topbar {
     height: 64px;
     padding-inline: 12px;
+  }
+
+  .capacitor-native .app-mobile-density .app-topbar {
+    height: calc(64px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
   }
 
   .app-mobile-density .app-avatar-shell {

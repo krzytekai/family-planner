@@ -14,6 +14,18 @@
     "build": "npm --workspace @family-planner/web run build",
     "preview": "npm --workspace @family-planner/web run preview",
     "lint": "npm --workspace @family-planner/web run lint",
-    "test": "npm --workspace @family-planner/web run test"
+    "test": "npm --workspace @family-planner/web run test",
+    "android:sync": "npm run build && cap sync android",
+    "android:open": "cap open android",
+    "android:build:debug": "npm run android:sync && node scripts/run-android-gradle.mjs assembleDebug",
+    "android:build:aab": "npm run android:sync && node scripts/run-android-gradle.mjs bundleRelease"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/app": "^8.0.1",
+    "@capacitor/core": "^8.5.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.0"
   }
 }

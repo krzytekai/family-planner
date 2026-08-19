@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Planer rodzinny</string>
+    <string name="title_activity_main">Planer rodzinny</string>
+    <string name="package_name">pl.turscy.planer</string>
+    <string name="custom_url_scheme">pl.turscy.planer</string>
+</resources>

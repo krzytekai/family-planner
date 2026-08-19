@@ -9,3 +9,12 @@ coverage
 .vercel
 playwright-report
 test-results
+*.tsbuildinfo
+
+# Android local/build/signing files
+android/.gradle/
+android/local.properties
+android/**/build/
+*.jks
+*.keystore
+keystore.properties

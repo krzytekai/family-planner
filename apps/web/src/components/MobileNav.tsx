@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { CalendarDays, CheckSquare, Home, MoreHorizontal, Plus, ShoppingCart, WalletCards, X } from 'lucide-react'
 import type { AppView } from '../app/navigation'
+import { useNativeBackDismiss } from '../app/native-platform'
 
 interface Props {
   activeView: AppView
@@ -12,6 +13,7 @@ interface Props {
 
 export function MobileNav({ activeView, canBudget, canQuickAdd, onNavigate, onQuickAdd }: Props) {
   const [more, setMore] = useState(false)
+  useNativeBackDismiss(more, () => setMore(false))
   const go = (view: AppView) => { onNavigate(view); setMore(false) }
   const item = (view: AppView, label: string, Icon: typeof Home) => {
     const active = activeView === view

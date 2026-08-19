@@ -10,6 +10,7 @@ import { ShoppingItemModal } from './ShoppingItemModal'
 import { ShoppingItemRow } from './ShoppingItemRow'
 import { ShoppingListModal } from './ShoppingListModal'
 import { ShoppingListSelector } from './ShoppingListSelector'
+import { useNativeBackDismiss } from '../../../app/native-platform'
 
 const filters: Array<{ value: ShoppingFilter; label: string }> = [{ value: 'all', label: 'Wszystkie' }, { value: 'unpurchased', label: 'Do kupienia' }, { value: 'purchased', label: 'Kupione' }, { value: 'mine', label: 'Moje' }]
 interface Props { family: FamilyContext; quickAddRequest: number }
@@ -25,6 +26,7 @@ export function ShoppingView({ family, quickAddRequest }: Props) {
   const visibleItems = useMemo(() => sortShoppingItems(filterShoppingItems(shopping.items, filter, family.userId, category)), [category, family.userId, filter, shopping.items])
   const unpurchased = visibleItems.filter((item) => !item.isPurchased); const purchased = visibleItems.filter((item) => item.isPurchased); const counts = shoppingCounts(shopping.items)
   const canManageList = shopping.selectedList ? canManageShoppingList(shopping.selectedList, family.userId, family.role) : false
+  useNativeBackDismiss(Boolean(deleteList || deleteItem || itemEditor || listEditor), () => { if (deleteList) setDeleteList(null); else if (deleteItem) setDeleteItem(null); else if (itemEditor) setItemEditor(null); else setListEditor(null) })
   async function saveList(input: ShoppingListInput, id?: string) { if (id) await shopping.updateList(id, input); else await shopping.createList(input) }
   async function saveItem(input: ShoppingItemInput, id?: string) { if (id) await shopping.updateItem(id, input); else await shopping.createItem(input) }
 
