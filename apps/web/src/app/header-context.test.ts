@@ -27,7 +27,7 @@ describe('global mobile header context', () => {
 
     expect(header).toContain('sticky top-0 z-30')
     expect(header).toContain('min-w-0 flex-1')
-    expect(header).toContain('truncate text-[10.5px]')
+    expect(header).toContain('truncate text-[11.5px]')
     expect(header).toContain('truncate text-[13.5px]')
     expect(header).toContain('shrink-0')
     expect(css).toContain('@media (max-width: 767px)')
