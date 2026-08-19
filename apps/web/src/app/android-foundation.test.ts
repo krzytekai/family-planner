@@ -9,7 +9,13 @@ describe('Android foundation', () => {
     const config = rootFile('capacitor.config.ts')
     const manifest = rootFile('android/app/src/main/AndroidManifest.xml')
 
-    expect(config).toContain("appId: 'pl.turscy.planer'")
+    const androidBuild = rootFile('android/app/build.gradle')
+    const mainActivity = rootFile('android/app/src/main/java/pl/rodzinny/planer/MainActivity.java')
+
+    expect(config).toContain("appId: 'pl.rodzinny.planer'")
+    expect(androidBuild).toContain('namespace = "pl.rodzinny.planer"')
+    expect(androidBuild).toContain('applicationId "pl.rodzinny.planer"')
+    expect(mainActivity).toContain('package pl.rodzinny.planer;')
     expect(config).toContain("webDir: 'apps/web/dist'")
     expect(config).toContain('allowMixedContent: false')
     expect(config).not.toContain('server:')

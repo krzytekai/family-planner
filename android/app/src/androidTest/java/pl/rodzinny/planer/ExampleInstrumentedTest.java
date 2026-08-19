@@ -1,4 +1,4 @@
-package pl.turscy.planer;
+package pl.rodzinny.planer;
 
 import static org.junit.Assert.assertEquals;
 
@@ -13,6 +13,6 @@ public class ExampleInstrumentedTest {
     @Test
     public void usesExpectedApplicationId() {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("pl.turscy.planer", appContext.getPackageName());
+        assertEquals("pl.rodzinny.planer", appContext.getPackageName());
     }
 }

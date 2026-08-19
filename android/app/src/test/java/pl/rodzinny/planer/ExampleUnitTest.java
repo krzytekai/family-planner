@@ -1,4 +1,4 @@
-package pl.turscy.planer;
+package pl.rodzinny.planer;
 
 import static org.junit.Assert.assertEquals;
 

@@ -1,4 +1,4 @@
-package pl.turscy.planer;
+package pl.rodzinny.planer;
 
 import com.getcapacitor.BridgeActivity;
 

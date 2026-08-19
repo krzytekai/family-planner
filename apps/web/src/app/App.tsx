@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { AppHeader } from '../components/AppHeader'
 import { MobileNav } from '../components/MobileNav'
@@ -11,7 +11,10 @@ import { DashboardView } from '../features/dashboard/DashboardView'
 import { FamilySetup } from '../features/family/FamilySetup'
 import { useFamilyContext } from '../features/family/useFamilyContext'
 import { NotificationCenter } from '../features/notifications/components/NotificationCenter'
+import { PushPermissionPrompt } from '../features/notifications/components/PushPermissionPrompt'
 import { ReminderModal } from '../features/notifications/components/ReminderModal'
+import { NativePushProvider } from '../features/notifications/NativePushProvider'
+import { useNativePush } from '../features/notifications/native-push-context'
 import { useNotifications } from '../features/notifications/hooks/useNotifications'
 import { useReminders } from '../features/notifications/hooks/useReminders'
 import { notificationDestination, reminderForSource } from '../features/notifications/notification-utils'
@@ -27,6 +30,7 @@ import { BudgetView } from '../features/budget/components/BudgetView'
 import { canViewBudget } from '../features/budget/budget-utils'
 import { NATIVE_BACK_EVENT, useNativeBackButton } from './native-platform'
 import { getHeaderSubtitle, type HeaderContext } from './header-context'
+import { getSupabaseClient } from '../lib/supabase'
 
 function Planner({ session }: { session: Session }) {
   const { family, loading, error } = useFamilyContext(session.user.id)
@@ -43,6 +47,7 @@ function FamilyPlanner({ family, canAdmin, adminOpen, setAdminOpen, displayName 
   const taskState = useTasks(family.familyId)
   const notificationState = useNotifications(family.familyId)
   const reminderState = useReminders(family.familyId)
+  const nativePush = useNativePush()
   const [activeView, setActiveView] = useState<AppView>('dashboard')
   const [quickTaskOpen, setQuickTaskOpen] = useState(false)
   const [calendarCreateRequest, setCalendarCreateRequest] = useState(0)
@@ -65,6 +70,35 @@ function FamilyPlanner({ family, canAdmin, adminOpen, setAdminOpen, displayName 
   function remindEvent(event: CalendarEvent) { setReminderSource({ type: 'calendar_event', id: event.id, title: event.title, occursAt: event.allDay && event.startDate ? new Date(`${event.startDate}T09:00:00`).toISOString() : event.startsAt }) }
   function editReminder(reminder: Reminder) { setReminderSource({ type: reminder.sourceType, id: reminder.sourceId, title: reminder.title?.replace(/^Przypomnienie: /, '') ?? 'Wpis', occursAt: reminder.remindAt }) }
 
+  const nativeCallbacks = useRef({
+    refresh: notificationState.refresh,
+    markReadById: notificationState.markReadById,
+    navigate,
+    completePendingAction: nativePush.completePendingAction,
+  })
+  nativeCallbacks.current = { refresh: notificationState.refresh, markReadById: notificationState.markReadById, navigate, completePendingAction: nativePush.completePendingAction }
+
+  useEffect(() => {
+    if (notificationState.loading) return
+    nativePush.bindSession({
+      familyId: family.familyId,
+      pushEnabled: notificationState.preferences.pushEnabled,
+      onForeground: () => { void nativeCallbacks.current.refresh() },
+      onAction: (action) => {
+        if (action.familyId !== family.familyId) return
+        setNotificationCenterOpen(false)
+        nativeCallbacks.current.navigate(action.route)
+        void nativeCallbacks.current.markReadById(action.notificationId).finally(() => nativeCallbacks.current.completePendingAction(action.notificationId))
+      },
+    })
+    return () => nativePush.unbindSession()
+  }, [family.familyId, nativePush, notificationState.loading, notificationState.preferences.pushEnabled])
+
+  async function logout() {
+    await nativePush.disableForLogout()
+    await getSupabaseClient()?.auth.signOut()
+  }
+
   useNativeBackButton(() => {
     if (reminderSource) { setReminderSource(null); return }
     if (notificationCenterOpen) { setNotificationCenterOpen(false); return }
@@ -86,7 +120,7 @@ function FamilyPlanner({ family, canAdmin, adminOpen, setAdminOpen, displayName 
     <Sidebar familyName={family.familyName} canAdmin={canAdmin} canBudget={canBudget} activeView={activeView} onNavigate={navigate} onAdmin={() => setAdminOpen(true)}/>
     <MobileNav activeView={activeView} canBudget={canBudget} canQuickAdd={activeView === 'shopping' || activeView === 'budget' || canCreateTasks} onNavigate={navigate} onQuickAdd={openContextualQuickAdd}/>
     <main className="mobile-nav-safe-content lg:ml-64 lg:pb-8">
-      <AppHeader familyName={family.familyName} subtitle={headerSubtitle} displayName={displayName} unreadCount={notificationState.unreadCount} onOpenNotifications={() => { setNotificationCenterOpen(true); void notificationState.refresh() }}/>
+      <AppHeader familyName={family.familyName} subtitle={headerSubtitle} displayName={displayName} unreadCount={notificationState.unreadCount} onOpenNotifications={() => { setNotificationCenterOpen(true); void notificationState.refresh() }} onLogout={() => void logout()}/>
       {activeView === 'dashboard' ? <DashboardView family={family} displayName={displayName} todayTasks={taskState.todayTasks} stats={taskState.stats} loading={taskState.loading} error={taskState.error} actionError={taskState.actionError} updatingIds={taskState.updatingIds} canCreateTasks={canCreateTasks} onQuickAdd={openQuickTask} onViewTasks={() => navigate('tasks')} onViewCalendar={() => navigate('calendar')} onViewShopping={() => navigate('shopping')} onToggle={(task) => void taskState.toggleCompleted(task)} onDelete={setTaskToDelete} unreadNotifications={notificationState.unreadCount} onOpenNotifications={() => setNotificationCenterOpen(true)} canBudget={canBudget} onViewBudget={() => navigate('budget')}/> : null}
       {activeView === 'calendar' ? <CalendarView family={family} createRequest={calendarCreateRequest} reminders={reminderState.reminders} onViewTask={() => navigate('tasks')} onReminder={remindEvent}/> : null}
       {activeView === 'tasks' ? <TasksView family={family} tasks={taskState.tasks} loading={taskState.loading} error={taskState.error} actionError={taskState.actionError} updatingIds={taskState.updatingIds} canCreate={canCreateTasks} onQuickAdd={openQuickTask} onToggle={(task) => void taskState.toggleCompleted(task)} onDelete={setTaskToDelete} reminders={reminderState.reminders} onReminder={remindTask}/> : null}
@@ -96,9 +130,10 @@ function FamilyPlanner({ family, canAdmin, adminOpen, setAdminOpen, displayName 
     {adminOpen && canAdmin ? <AdminPanel family={family} onClose={() => setAdminOpen(false)}/> : null}
     {quickTaskOpen ? <QuickTaskModal familyId={family.familyId} members={taskState.members} saving={taskState.saving} onCreate={taskState.createTask} onClose={() => setQuickTaskOpen(false)}/> : null}
     {taskToDelete ? <DeleteTaskModal task={taskToDelete} deleting={taskState.deletingIds.has(taskToDelete.id)} onDelete={taskState.deleteTask} onClose={() => setTaskToDelete(null)}/> : null}
-    {notificationCenterOpen ? <NotificationCenter notifications={notificationState.notifications} reminders={reminderState.reminders} preferences={notificationState.preferences} loading={notificationState.loading || reminderState.loading} saving={notificationState.saving || reminderState.saving} error={notificationState.error ?? reminderState.error} onOpen={(item) => { void notificationState.setRead(item, true); setNotificationCenterOpen(false); navigate(notificationDestination(item)) }} onToggleRead={(item) => void notificationState.setRead(item, item.readAt !== null)} onMarkAllRead={() => void notificationState.markAllRead()} onEditReminder={(item) => { editReminder(item); setNotificationCenterOpen(false) }} onDeleteReminder={(id) => void reminderState.remove(id)} onPreferences={(value) => void notificationState.savePreferences(value)} onClose={() => setNotificationCenterOpen(false)}/> : null}
+    {notificationCenterOpen ? <NotificationCenter notifications={notificationState.notifications} reminders={reminderState.reminders} preferences={notificationState.preferences} systemPushPermission={nativePush.permission} loading={notificationState.loading || reminderState.loading} saving={notificationState.saving || reminderState.saving} error={notificationState.error ?? reminderState.error ?? nativePush.error} onOpen={(item) => { void notificationState.setRead(item, true); setNotificationCenterOpen(false); navigate(notificationDestination(item)) }} onToggleRead={(item) => void notificationState.setRead(item, item.readAt !== null)} onMarkAllRead={() => void notificationState.markAllRead()} onEditReminder={(item) => { editReminder(item); setNotificationCenterOpen(false) }} onDeleteReminder={(id) => void reminderState.remove(id)} onPreferences={(value) => void notificationState.savePreferences(value)} onClose={() => setNotificationCenterOpen(false)}/> : null}
+    {nativePush.showPreprompt ? <PushPermissionPrompt busy={nativePush.registering} onEnable={() => void nativePush.acceptPreprompt()} onLater={nativePush.dismissPreprompt}/> : null}
     {reminderSource ? <ReminderModal source={reminderSource} reminder={reminderForSource(reminderState.reminders, reminderSource.type, reminderSource.id)} saving={reminderState.saving} error={reminderState.error} onSave={reminderState.save} onDelete={reminderState.remove} onClose={() => setReminderSource(null)}/> : null}
   </div>
 }
 
-export function App() { return <AuthGate>{(session) => <Planner session={session}/>}</AuthGate> }
+export function App() { return <NativePushProvider><AuthGate>{(session) => <Planner session={session}/>}</AuthGate></NativePushProvider> }

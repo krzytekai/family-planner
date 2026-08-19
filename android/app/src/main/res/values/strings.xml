@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Planer rodzinny</string>
     <string name="title_activity_main">Planer rodzinny</string>
-    <string name="package_name">pl.turscy.planer</string>
-    <string name="custom_url_scheme">pl.turscy.planer</string>
+    <string name="package_name">pl.rodzinny.planer</string>
+    <string name="custom_url_scheme">pl.rodzinny.planer</string>
 </resources>

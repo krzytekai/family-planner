@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Neutral monochrome notification icon; replace later with a final branded glyph. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,22a2.5,2.5 0,0 0,2.45 -2h-4.9A2.5,2.5 0,0 0,12 22M20,17v1H4v-1l2,-2v-5a6,6 0,0 1,5 -5.91V3a1,1 0,0 1,2 0v1.09A6,6 0,0 1,18 10v5z" />
+</vector>

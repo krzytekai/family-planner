@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "pl.turscy.planer"
+    namespace = "pl.rodzinny.planer"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "pl.turscy.planer"
+        applicationId "pl.rodzinny.planer"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

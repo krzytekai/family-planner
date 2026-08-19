@@ -38,5 +38,19 @@ export function createNotificationRepository() {
       const { error } = await query
       if (error) throw new Error(error.message)
     },
+    async registerDevice(input: { installationId: string; installationSecret: string; pushToken: string; appVersion: string | null; deviceLabel: string }) {
+      const { error } = await client().rpc('register_notification_device', {
+        device_installation_id: input.installationId,
+        device_installation_secret: input.installationSecret,
+        device_push_token: input.pushToken,
+        device_app_version: input.appVersion,
+        device_label_value: input.deviceLabel,
+      })
+      if (error) throw new Error(error.message)
+    },
+    async disableDevice(installationId: string) {
+      const { error } = await client().rpc('disable_notification_device', { device_installation_id: installationId })
+      if (error) throw new Error(error.message)
+    },
   }
 }

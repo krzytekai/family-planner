@@ -60,18 +60,15 @@ Capacitor ładuje lokalny bundle z `apps/web/dist`; nie ma `server.url` ani zgod
 
 Splash ma ciemne tło `#0A0A0F` i szybkie przejście do aplikacji. Wygenerowane ikony/adaptive icon są technicznie poprawnym placeholderem Capacitor. Przed wydaniem należy zastąpić wszystkie `mipmap-*` oraz splash foreground finalnym, zatwierdzonym brandingiem — bez zmiany `applicationId`.
 
-## FCM i deep links — kolejny etap
+## FCM i deep links
 
-Nie dodano Firebase ani `google-services.json`. Następny etap wymaga:
+Klient Firebase Android jest skonfigurowany dla `pl.rodzinny.planer`, a oficjalny plugin Push Notifications obsługuje zgodę systemową, rejestrację tokenu, kanały oraz zdarzenia foreground/background/tap. Prawdziwy `google-services.json` pozostaje poza repozytorium: lokalnie jest ignorowany przez Git, a workflow CI odtwarza go z zaszyfrowanego GitHub Actions secretu. Backendowy service account, wdrożenie Edge Function i Cron są osobnym, późniejszym etapem opisanym w `docs/fcm.md`.
 
-1. projektu Firebase przypisanego do `pl.turscy.planer`,
-2. bezpiecznie dostarczonego `google-services.json`,
-3. oficjalnego pluginu Push Notifications,
-4. zgody `POST_NOTIFICATIONS`, rejestracji/odświeżania tokenu i zapisu tokenu dla zalogowanego użytkownika,
-5. obsługi foreground/background/tap,
-6. mapowania payloadu na przyszłe trasy `planer://tasks/<id>`, `planer://calendar/<id>`, `planer://shopping/<id>` i `planer://budget`.
+Payload mapuje powiadomienia na istniejące widoki Tasks, Calendar i Dashboard. Docelowe publiczne trasy `planer://tasks/<id>`, `planer://calendar/<id>`, `planer://shopping/<id>` i `planer://budget` nie są jeszcze rejestrowane w manifeście.
 
 Obecna nawigacja jest stanem aplikacji, więc manifest nie rejestruje jeszcze schematu `planer://`; rejestrację należy dodać razem z walidacją payloadu i docelowym dispatcherem deep linków.
+
+`pl.rodzinny.planer` jest odrębnym identyfikatorem aplikacji Android od wcześniejszego `pl.turscy.planer`. APK z nowym identyfikatorem nie zaktualizuje wcześniejszego debug APK „na wierzch” i może zostać zainstalowany jako osobna aplikacja. To świadoma zmiana wykonana przed konfiguracją Firebase.
 
 ## Checklista testu na telefonie
 

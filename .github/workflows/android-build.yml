@@ -53,6 +53,15 @@ jobs:
       - name: Build web application
         run: npm run build
 
+      - name: Configure Firebase Android client
+        shell: bash
+        env:
+          FIREBASE_GOOGLE_SERVICES_JSON_B64: ${{ secrets.FIREBASE_GOOGLE_SERVICES_JSON_B64 }}
+        run: |
+          test -n "$FIREBASE_GOOGLE_SERVICES_JSON_B64" || (echo "Missing FIREBASE_GOOGLE_SERVICES_JSON_B64 secret" && exit 1)
+          printf '%s' "$FIREBASE_GOOGLE_SERVICES_JSON_B64" | base64 --decode > android/app/google-services.json
+          test -s android/app/google-services.json || (echo "Decoded google-services.json is empty" && exit 1)
+
       - name: Sync Capacitor Android
         run: npx cap sync android
 

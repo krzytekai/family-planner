@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
-  appId: 'pl.turscy.planer',
+  appId: 'pl.rodzinny.planer',
   appName: 'Planer rodzinny',
   webDir: 'apps/web/dist',
   android: {
@@ -13,6 +13,9 @@ const config: CapacitorConfig = {
       insetsHandling: 'css',
       style: 'DARK',
       hidden: false,
+    },
+    PushNotifications: {
+      presentationOptions: ['alert', 'sound'],
     },
   },
 }
