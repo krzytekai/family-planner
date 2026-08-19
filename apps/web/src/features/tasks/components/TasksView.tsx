@@ -45,7 +45,7 @@ export function TasksView({ family, tasks, loading, error, actionError, updating
   return (
     <div className="mx-auto max-w-[1500px] p-4 md:p-7">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div><p className="mb-1 text-xs uppercase tracking-[.18em] text-brand-gold">{family.familyName}</p><h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Zadania rodziny</h1><p className="mt-1 text-sm text-brand-muted">Wszystkie zadania, terminy i przypisania w jednym miejscu.</p></div>
+        <div><div className="view-heading-identity"><p className="mb-1 text-xs uppercase tracking-[.18em] text-brand-gold">{family.familyName}</p><h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Zadania rodziny</h1></div><p className="mt-1 text-sm text-brand-muted">Wszystkie zadania, terminy i przypisania w jednym miejscu.</p></div>
         <QuickTaskAdd canCreate={canCreate} onOpen={onQuickAdd} />
       </section>
 

@@ -55,7 +55,7 @@ button { cursor: pointer; }
   .mobile-nav-safe-content { padding-bottom: 2rem; }
 }
 
-@media (max-width: 639px) {
+@media (max-width: 767px) {
   .app-mobile-density .app-topbar {
     height: 64px;
     padding-inline: 12px;
@@ -65,6 +65,19 @@ button { cursor: pointer; }
     height: calc(64px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
   }
 
+  .app-mobile-density .app-topbar-actions > button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .app-mobile-density .view-heading-identity,
+  .app-mobile-density main > div > header:first-child > div:first-child > p:first-child,
+  .app-mobile-density main > div > header:first-child > div:first-child > h1 {
+    display: none;
+  }
+}
+
+@media (max-width: 639px) {
   .app-mobile-density .app-avatar-shell {
     padding: 4px;
     border-radius: 10px;

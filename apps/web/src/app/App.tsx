@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import { LogOut, Search } from 'lucide-react'
+import { AppHeader } from '../components/AppHeader'
 import { MobileNav } from '../components/MobileNav'
 import { Sidebar } from '../components/Sidebar'
 import { AdminPanel } from '../features/admin/AdminPanel'
@@ -10,7 +10,6 @@ import type { CalendarEvent } from '../features/calendar/types'
 import { DashboardView } from '../features/dashboard/DashboardView'
 import { FamilySetup } from '../features/family/FamilySetup'
 import { useFamilyContext } from '../features/family/useFamilyContext'
-import { NotificationBell } from '../features/notifications/components/NotificationBell'
 import { NotificationCenter } from '../features/notifications/components/NotificationCenter'
 import { ReminderModal } from '../features/notifications/components/ReminderModal'
 import { useNotifications } from '../features/notifications/hooks/useNotifications'
@@ -23,11 +22,11 @@ import { QuickTaskModal } from '../features/tasks/components/QuickTaskModal'
 import { TasksView } from '../features/tasks/components/TasksView'
 import { useTasks } from '../features/tasks/hooks/useTasks'
 import type { Task } from '../features/tasks/types'
-import { getSupabaseClient } from '../lib/supabase'
 import type { AppView } from './navigation'
 import { BudgetView } from '../features/budget/components/BudgetView'
 import { canViewBudget } from '../features/budget/budget-utils'
 import { NATIVE_BACK_EVENT, useNativeBackButton } from './native-platform'
+import { getHeaderSubtitle, type HeaderContext } from './header-context'
 
 function Planner({ session }: { session: Session }) {
   const { family, loading, error } = useFamilyContext(session.user.id)
@@ -55,6 +54,8 @@ function FamilyPlanner({ family, canAdmin, adminOpen, setAdminOpen, displayName 
   const viewHistory = useRef<AppView[]>(['dashboard'])
   const canCreateTasks = family.role === 'owner' || family.role === 'admin' || family.role === 'adult'
   const canBudget = canViewBudget(family.role)
+  const headerContext: HeaderContext = adminOpen ? 'admin' : notificationCenterOpen ? 'notifications' : activeView
+  const headerSubtitle = getHeaderSubtitle(headerContext, displayName)
 
   function showView(view: AppView) { setActiveView(view); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   function navigate(view: AppView) { if ((view === 'budget' && !canBudget) || view === activeView) return; viewHistory.current.push(view); showView(view) }
@@ -85,7 +86,7 @@ function FamilyPlanner({ family, canAdmin, adminOpen, setAdminOpen, displayName 
     <Sidebar familyName={family.familyName} canAdmin={canAdmin} canBudget={canBudget} activeView={activeView} onNavigate={navigate} onAdmin={() => setAdminOpen(true)}/>
     <MobileNav activeView={activeView} canBudget={canBudget} canQuickAdd={activeView === 'shopping' || activeView === 'budget' || canCreateTasks} onNavigate={navigate} onQuickAdd={openContextualQuickAdd}/>
     <main className="mobile-nav-safe-content lg:ml-64 lg:pb-8">
-      <header className="app-topbar sticky top-0 z-30 flex h-20 items-center justify-between border-b border-white/5 bg-brand-bg/85 px-4 backdrop-blur-xl md:px-7"><div className="relative hidden max-w-md flex-1 md:block"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-muted/50"/><input disabled aria-label="Wyszukiwanie — w przygotowaniu" placeholder="Wyszukiwanie — w przygotowaniu" className="w-full cursor-not-allowed rounded-xl border border-white/5 bg-white/[0.015] py-2.5 pl-10 pr-4 text-sm text-brand-muted/50 outline-none"/></div><div className="ml-auto flex items-center gap-1.5 sm:gap-2"><NotificationBell unreadCount={notificationState.unreadCount} onClick={() => { setNotificationCenterOpen(true); void notificationState.refresh() }}/><div className="app-avatar-shell flex items-center gap-2 rounded-xl border border-white/5 bg-white/[0.025] px-2.5 py-2"><div className="app-avatar grid h-8 w-8 place-items-center rounded-full bg-brand-gold/15 text-xs font-bold text-brand-gold">{displayName.slice(0, 1).toUpperCase()}</div><span className="hidden text-sm font-medium sm:block">{displayName}</span></div><button aria-label="Wyloguj" title="Wyloguj" onClick={() => void getSupabaseClient()?.auth.signOut()} className="grid h-10 w-10 place-items-center rounded-xl text-brand-muted hover:bg-white/5 hover:text-brand-text"><LogOut className="h-4 w-4"/></button></div></header>
+      <AppHeader familyName={family.familyName} subtitle={headerSubtitle} displayName={displayName} unreadCount={notificationState.unreadCount} onOpenNotifications={() => { setNotificationCenterOpen(true); void notificationState.refresh() }}/>
       {activeView === 'dashboard' ? <DashboardView family={family} displayName={displayName} todayTasks={taskState.todayTasks} stats={taskState.stats} loading={taskState.loading} error={taskState.error} actionError={taskState.actionError} updatingIds={taskState.updatingIds} canCreateTasks={canCreateTasks} onQuickAdd={openQuickTask} onViewTasks={() => navigate('tasks')} onViewCalendar={() => navigate('calendar')} onViewShopping={() => navigate('shopping')} onToggle={(task) => void taskState.toggleCompleted(task)} onDelete={setTaskToDelete} unreadNotifications={notificationState.unreadCount} onOpenNotifications={() => setNotificationCenterOpen(true)} canBudget={canBudget} onViewBudget={() => navigate('budget')}/> : null}
       {activeView === 'calendar' ? <CalendarView family={family} createRequest={calendarCreateRequest} reminders={reminderState.reminders} onViewTask={() => navigate('tasks')} onReminder={remindEvent}/> : null}
       {activeView === 'tasks' ? <TasksView family={family} tasks={taskState.tasks} loading={taskState.loading} error={taskState.error} actionError={taskState.actionError} updatingIds={taskState.updatingIds} canCreate={canCreateTasks} onQuickAdd={openQuickTask} onToggle={(task) => void taskState.toggleCompleted(task)} onDelete={setTaskToDelete} reminders={reminderState.reminders} onReminder={remindTask}/> : null}
