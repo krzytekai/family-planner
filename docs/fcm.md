@@ -2,6 +2,18 @@
 
 Ten dokument jest runbookiem wdrożeniowym. Nie zawiera sekretów ani danych konkretnego projektu. Nie wklejaj klucza prywatnego do repozytorium, APK, Vite ani czatu.
 
+## Status produkcyjny
+
+Integracja FCM jest kompletna i działa produkcyjnie end-to-end:
+
+- pakiet Android: `pl.rodzinny.planer`,
+- Edge Function `push-dispatcher` jest wdrożona,
+- Supabase Vault jest skonfigurowany,
+- `pg_net` jest włączone,
+- Cron `push-dispatcher-every-minute` uruchamia dispatcher co minutę,
+- prawdziwy push został pomyślnie przetestowany na fizycznym urządzeniu Android,
+- sekrety, service account JSON i tokeny FCM nie są przechowywane w repozytorium.
+
 ## A. Architektura
 
 `public.notifications` jest jedynym źródłem prawdy o powiadomieniu. Trigger z migracji `0009_fcm_push_delivery.sql` tworzy prywatne delivery per aktywne urządzenie tylko wtedy, gdy `push_enabled` dla rodziny i użytkownika jest włączone. Edge Function claimuje delivery przez `FOR UPDATE SKIP LOCKED`, wysyła FCM HTTP v1 i zapisuje wynik. Centrum in-app czyta nadal wyłącznie canonical notifications.
