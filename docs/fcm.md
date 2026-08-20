@@ -7,12 +7,15 @@ Ten dokument jest runbookiem wdrożeniowym. Nie zawiera sekretów ani danych kon
 Integracja FCM jest kompletna i działa produkcyjnie end-to-end:
 
 - pakiet Android: `pl.rodzinny.planer`,
+- integracja klienta Firebase działa, a rejestracja FCM została pomyślnie przetestowana na fizycznym urządzeniu,
 - Edge Function `push-dispatcher` jest wdrożona,
-- Supabase Vault jest skonfigurowany,
+- uwierzytelnianie worker secretem działa: request bez sekretu zwraca HTTP 401, a autoryzowany dispatcher HTTP 200,
+- Supabase Vault przechowuje sekrety nazwane `push_worker_secret` i `push_dispatcher_url`,
 - `pg_net` jest włączone,
 - Cron `push-dispatcher-every-minute` uruchamia dispatcher co minutę,
-- prawdziwy push został pomyślnie przetestowany na fizycznym urządzeniu Android,
-- sekrety, service account JSON i tokeny FCM nie są przechowywane w repozytorium.
+- produkcyjny test automatycznego wywołania i dostarczenia prawdziwego push na Android zakończył się sukcesem,
+- migracja `0010_push_dispatcher_cron.sql` jest wdrożona produkcyjnie i historyczna; następna migracja bazy ma numer `0011`,
+- wartości sekretów, service account JSON i tokeny FCM nie są przechowywane w repozytorium.
 
 ## A. Architektura
 
