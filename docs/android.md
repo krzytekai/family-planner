@@ -54,6 +54,20 @@ APK używa wyłącznie publicznej konfiguracji klienta Vite:
 
 Workflow `.github/workflows/android-build.yml` oczekuje GitHub Actions Repository Variables o tych nazwach; alternatywnie mogą to być Secrets o identycznych nazwach. Workflow używa Node 22, JDK 21, cache npm/Gradle, wykonuje `npm ci`, build web, `cap sync`, `assembleDebug` i publikuje APK jako artifact.
 
+## Walidacja Firebase przed buildem Android
+
+APK używany do testów FCM musi przejść `npm run android:firebase:check`. Sam sukces Gradle nie oznacza, że APK jest FCM-ready.
+
+W GitHub Actions prawdziwy `android/app/google-services.json` jest odtwarzany z `FIREBASE_GOOGLE_SERVICES_JSON_B64`. Workflow waliduje JSON i klienta `pl.rodzinny.planer` przed `cap sync` oraz `assembleDebug`; brakująca lub nieprawidłowa konfiguracja zatrzymuje job przed utworzeniem APK. Artifact z tego workflow jest referencyjnym buildem do testów FCM.
+
+Lokalnie musi istnieć ignorowany przez Git plik `android/app/google-services.json`. Przed synchronizacją lub buildem uruchom:
+
+```powershell
+npm run android:firebase:check
+```
+
+Skrypty `npm run android:build:debug` i `npm run android:build:aab` wykonują tę kontrolę automatycznie przez `android:sync`. Nie dodawaj fallbacku, mocka ani przykładowego Firebase JSON do lokalnego lub CI buildu.
+
 ## System UI, splash i ikona
 
 Capacitor ładuje lokalny bundle z `apps/web/dist`; nie ma `server.url` ani zgody na cleartext. System bars korzystają z ciemnego stylu i zmiennych safe-area Capacitor 8. Klawiatura działa w trybie `adjustResize`.

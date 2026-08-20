@@ -200,6 +200,8 @@ FCM `UNREGISTERED` oraz jednoznaczny tokenowy `google.firebase.fcm.v1.FcmError/I
 ## V. Troubleshooting GitHub Android build
 
 - Secret `FIREBASE_GOOGLE_SERVICES_JSON_B64` musi istnieć i dekodować się do niepustego JSON.
+- Każdy APK przeznaczony do testów FCM musi przejść `npm run android:firebase:check`; sam udany Gradle build nie potwierdza poprawnej konfiguracji Firebase.
+- GitHub Actions wykonuje check po odtworzeniu `google-services.json`, ale przed `cap sync` i `assembleDebug`. Lokalny build wymaga prawdziwego, ignorowanego pliku `android/app/google-services.json` i tego samego checku.
 - `VITE_SUPABASE_URL` i `VITE_SUPABASE_PUBLISHABLE_KEY` pozostają wymagane.
 - Workflow zachowuje Node 22, JDK 21, wrapper Gradle i `assembleDebug`.
 - Nie dodawaj `google-services.json`, service account, `.env`, APK ani Gradle build outputs do stagingu.

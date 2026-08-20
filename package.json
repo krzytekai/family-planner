@@ -14,8 +14,9 @@
     "build": "npm --workspace @family-planner/web run build",
     "preview": "npm --workspace @family-planner/web run preview",
     "lint": "npm --workspace @family-planner/web run lint",
-    "test": "npm --workspace @family-planner/web run test",
-    "android:sync": "npm run build && cap sync android",
+    "test": "node --test scripts/validate-android-firebase-config.test.mjs && npm --workspace @family-planner/web run test",
+    "android:firebase:check": "node scripts/validate-android-firebase-config.mjs",
+    "android:sync": "npm run android:firebase:check && npm run build && cap sync android",
     "android:open": "cap open android",
     "android:build:debug": "npm run android:sync && node scripts/run-android-gradle.mjs assembleDebug",
     "android:build:aab": "npm run android:sync && node scripts/run-android-gradle.mjs bundleRelease"
