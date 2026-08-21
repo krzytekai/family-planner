@@ -13,6 +13,9 @@ Migracje są wykonywane kolejno i ręcznie zatwierdzane przed uruchomieniem na �
 7. `0006_notifications.sql`
 8. `0007_fix_due_reminders_processor.sql`
 9. `0008_budget.sql`
+10. `0009_fcm_push_delivery.sql`
+11. `0010_push_dispatcher_cron.sql`
+12. `0011_recurring_tasks.sql` (zastosowana ręcznie na produkcyjnym Supabase)
 
 Codex przygotowuje pliki migracji, ale nie uruchamia ich samodzielnie na produkcyjnym projekcie Supabase.
 
@@ -33,6 +36,16 @@ Dozwolone priorytety:
 - `high`
 
 `assigned_to` i `created_by` wskazują na `public.profiles`, dzięki czemu PostgREST może osadzić oba profile. Zapytanie frontendu rozróżnia relacje przez nazwy `tasks_assigned_to_fkey` i `tasks_created_by_fkey`.
+
+### Zadania cykliczne (0011)
+
+`task_recurrence_series` przechowuje stabilną definicję serii: ścisłą regułę JSONB, strefę IANA, termin kotwiczący i stan aktywności. Każde wystąpienie pozostaje zwykłym rekordem `tasks`; pola `recurrence_series_id`, `occurrence_index` oraz `generated_from_task_id` tworzą historię bez generowania wielu przyszłych zadań.
+
+Trigger po przejściu `status != done → done` blokuje serię i tworzy co najwyżej jedno następne wystąpienie. Unikalności `(recurrence_series_id, occurrence_index)` i `generated_from_task_id` chronią również przed retry oraz równoległymi żądaniami. Daty są liczone w lokalnym kalendarzu strefy serii. Dzień 29/30/31 jest przycinany do końca krótszego miesiąca, ale reguła zachowuje dzień kotwiczący, więc kolejny dłuższy miesiąc wraca do pierwotnego dnia.
+
+Logiczny `assignee_reminder_offset_minutes` należy do zadania. `reminder_kind` rozróżnia stare i nowe przypomnienia osobiste (`personal`, wartość domyślna) od backendowych przypomnień obowiązku (`task_assignee`). Dzięki temu oba rodzaje mogą istnieć dla jednego użytkownika i taska bez konfliktu unikalności. Konkretne rekordy `task_assignee` są tworzone przez kontrolowane RPC dla `assigned_to`, nigdy dla odbiorcy wskazanego dowolnie przez klienta. Następne occurrence dziedziczy offset i otrzymuje nowy rekord `pending` wyliczony od nowego `due_at`.
+
+`recurrence_until` nie jest częścią 0011. Zakończenie serii odbywa się jawnie przez `recurrence_enabled=false` i `stopped_at`; ograniczenie datą zostanie dodane dopiero razem z pełnym RPC oraz UX.
 
 ## Integralność zapisu
 

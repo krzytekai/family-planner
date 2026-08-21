@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canDeleteTask, canUpdateTask, filterTasks, getTaskStats, getTodayTasks, isDueToday } from './task-utils'
+import { canDeleteTask, canManageTaskAutomation, canUpdateTask, filterTasks, getTaskStats, getTodayTasks, isDueToday, recurrenceLabel, validateRecurrenceRule } from './task-utils'
 import type { Task, TaskFilter } from './types'
 
 function task(overrides: Partial<Task> = {}): Task {
@@ -16,6 +16,8 @@ function task(overrides: Partial<Task> = {}): Task {
     createdAt: '2026-08-16T10:00:00.000Z',
     updatedAt: '2026-08-16T10:00:00.000Z',
     completedAt: null,
+    recurrence: null,
+    assigneeReminderOffsetMinutes: null,
     ...overrides,
   }
 }
@@ -88,6 +90,19 @@ describe('task dashboard logic', () => {
     })
   })
 
+  describe('task automation permissions', () => {
+    const candidate = task({ createdBy: { id: 'creator-1', displayName: 'Olek' }, assignedTo: { id: 'child-1', displayName: 'Ala' } })
+    it('allows owner, admin and task creator to manage recurrence and assignee reminders', () => {
+      expect(canManageTaskAutomation(candidate, 'owner-1', 'owner')).toBe(true)
+      expect(canManageTaskAutomation(candidate, 'admin-1', 'admin')).toBe(true)
+      expect(canManageTaskAutomation(candidate, 'creator-1', 'adult')).toBe(true)
+    })
+    it('does not allow an assigned child to manage automation only because they can complete the task', () => {
+      expect(canUpdateTask(candidate, 'child-1', 'child')).toBe(true)
+      expect(canManageTaskAutomation(candidate, 'child-1', 'child')).toBe(false)
+    })
+  })
+
   it.each(filterCases)('filters tasks using $filter', ({ filter, expected }) => {
     const tasks = [
       task({ id: 'today-active' }),
@@ -96,5 +111,22 @@ describe('task dashboard logic', () => {
     ]
 
     expect(filterTasks(tasks, filter, 'current-user', now).map(({ id }) => id)).toEqual(expected)
+  })
+
+  it('validates and labels supported recurrence rules', () => {
+    expect(recurrenceLabel({ type: 'daily', interval: 1 })).toBe('codziennie')
+    expect(recurrenceLabel({ type: 'daily', interval: 4 })).toBe('co 4 dni')
+    expect(recurrenceLabel({ type: 'weekly', interval: 1, weekdays: [2, 5] })).toBe('wtorek i piątek')
+    expect(recurrenceLabel({ type: 'monthly', interval: 1, day_of_month: 31 })).toBe('co miesiąc, 31. dnia')
+    expect(validateRecurrenceRule({ type: 'weekly', interval: 1, weekdays: [] })).toBe(false)
+    expect(validateRecurrenceRule({ type: 'monthly', interval: 1, day_of_month: 32 })).toBe(false)
+    expect(validateRecurrenceRule({ type: 'yearly', interval: 1, month: 2, day_of_month: 29 })).toBe(true)
+    expect(validateRecurrenceRule({ type: 'daily', interval: 0 })).toBe(false)
+  })
+
+  it('filters only active recurring series', () => {
+    const recurring = task({ id: 'recurring', recurrence: { seriesId: 'series-1', rule: { type: 'daily', interval: 1 }, timezone: 'Europe/Warsaw', enabled: true, occurrenceIndex: 0 } })
+    const stopped = task({ id: 'stopped', recurrence: { seriesId: 'series-2', rule: { type: 'daily', interval: 1 }, timezone: 'Europe/Warsaw', enabled: false, occurrenceIndex: 2 } })
+    expect(filterTasks([recurring, stopped, task({ id: 'plain' })], 'recurring', 'user', now).map(({ id }) => id)).toEqual(['recurring'])
   })
 })

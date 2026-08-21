@@ -22,7 +22,16 @@ Trwałe centrum powiadomień, backendowe powiadomienia o przypisaniu zadania, os
 ## Sprint 6 — Dashboard rozszerzony
 Konfigurowalne widżety, aktywność rodziny i personalizacja skrótów.
 
-## Sprint 7 — Backup Center
+## Sprint 7 — Zadania cykliczne
+Serie obowiązków rodzinnych, jedno następne occurrence generowane przez bazę, przypomnienia dla assignee, historia, idempotencja i obsługa lokalnej strefy czasu.
+
+## Sprint 7.5 — Administracja
+Pełna administracja rodziną i aplikacją. Zakres planowany — nie jest częścią Sprintu 7.
+
+## Sprint 7.6 — Nieruchomości i opłaty
+Model nieruchomości oraz powiązanych opłat. Zakres planowany — nie jest częścią Sprintu 7.
+
+## Później — Backup Center
 Zakresowy backup, szyfrowanie, historia i selektywne przywracanie.
 
 ## Sprint Budget — Budżet i rozliczenia

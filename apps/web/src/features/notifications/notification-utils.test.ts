@@ -3,7 +3,7 @@ import { groupNotifications, isNotificationTypeEnabled, isReminderDue, notificat
 import { defaultNotificationPreferences, type AppNotification, type Reminder } from './types'
 
 const notification = (overrides: Partial<AppNotification> = {}): AppNotification => ({ id: 'n1', familyId: 'f1', recipientUserId: 'u1', type: 'system', title: 'T', body: null, sourceType: null, sourceId: null, readAt: null, createdAt: '2026-08-18T08:00:00Z', ...overrides })
-const reminder = (overrides: Partial<Reminder> = {}): Reminder => ({ id: 'r1', familyId: 'f1', sourceType: 'task', sourceId: 't1', title: null, remindAt: '2026-08-18T08:00:00Z', timezone: 'Europe/Warsaw', status: 'pending', ...overrides })
+const reminder = (overrides: Partial<Reminder> = {}): Reminder => ({ id: 'r1', familyId: 'f1', sourceType: 'task', sourceId: 't1', title: null, remindAt: '2026-08-18T08:00:00Z', timezone: 'Europe/Warsaw', status: 'pending', kind: 'personal', assigneeReminderOffsetMinutes: null, ...overrides })
 
 describe('notification utilities', () => {
   it('counts only unread notifications', () => expect(unreadNotificationCount([notification(), notification({ id: 'n2', readAt: '2026-08-18T09:00:00Z' })])).toBe(1))

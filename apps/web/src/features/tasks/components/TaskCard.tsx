@@ -1,8 +1,8 @@
-import { BellRing, CalendarClock, Check, RotateCcw, Trash2, UserRound } from 'lucide-react'
+import { BellRing, CalendarClock, Check, Pencil, Repeat2, RotateCcw, Trash2, UserRound } from 'lucide-react'
 import { formatNotificationDate } from '../../notifications/notification-utils'
 import type { Reminder } from '../../notifications/types'
 import type { FamilyRole } from '../../../types/domain'
-import { canDeleteTask, canUpdateTask, formatTaskDateTime } from '../task-utils'
+import { canDeleteTask, canManageTaskAutomation, canUpdateTask, formatTaskDateTime, recurrenceLabel } from '../task-utils'
 import type { Task } from '../types'
 
 const statusLabels = {
@@ -32,14 +32,17 @@ interface TaskCardProps {
   onDelete: (task: Task) => void
   reminder?: Reminder
   onReminder: (task: Task) => void
+  onEdit: (task: Task) => void
+  onStopRecurrence: (task: Task) => void
 }
 
-export function TaskCard({ task, currentUserId, currentUserRole, updating, onToggle, onDelete, reminder, onReminder }: TaskCardProps) {
+export function TaskCard({ task, currentUserId, currentUserRole, updating, onToggle, onDelete, reminder, onReminder, onEdit, onStopRecurrence }: TaskCardProps) {
   const done = task.status === 'done'
   const canToggle = canUpdateTask(task, currentUserId, currentUserRole)
   const canDelete = canDeleteTask(task, currentUserId, currentUserRole)
   const dueAt = formatTaskDateTime(task.dueAt)
   const completedAt = formatTaskDateTime(task.completedAt)
+  const canManageSeries = canManageTaskAutomation(task, currentUserId, currentUserRole)
 
   return (
     <article className="mobile-card mobile-task-card rounded-2xl border border-white/[.07] bg-black/20 p-4 transition hover:border-brand-gold/15">
@@ -54,6 +57,7 @@ export function TaskCard({ task, currentUserId, currentUserRole, updating, onTog
       <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
         <span className={`rounded-full px-2 py-1 ${priorityClasses[task.priority]}`}>Priorytet: {priorityLabels[task.priority]}</span>
         <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-1 text-brand-muted"><CalendarClock className="h-3 w-3" />{dueAt ?? 'Bez terminu'}</span>
+        {task.recurrence?.enabled ? <span className="inline-flex items-center gap-1 rounded-full bg-brand-gold/10 px-2 py-1 text-brand-gold"><Repeat2 className="h-3 w-3"/>Cykliczne · {recurrenceLabel(task.recurrence.rule)}</span> : null}
       </div>
 
       <dl className="mt-4 grid gap-2 text-xs text-brand-muted sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
@@ -62,7 +66,7 @@ export function TaskCard({ task, currentUserId, currentUserRole, updating, onTog
         {done ? <div className="sm:col-span-2 xl:col-span-1 2xl:col-span-2"><dt className="sr-only">Data wykonania</dt><dd className="text-brand-green">Wykonano: {completedAt ?? 'brak daty'}</dd></div> : null}
       </dl>
 
-      <div className="mt-4 flex gap-2"><button type="button" onClick={() => onReminder(task)} className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-xs text-brand-muted hover:border-brand-gold/20 hover:text-brand-gold"><BellRing className="h-3.5 w-3.5"/>{reminder ? formatNotificationDate(reminder.remindAt) : 'Przypomnij'}</button><button
+      <div className="mt-4 flex flex-wrap gap-2"><button type="button" onClick={() => onReminder(task)} className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-xs text-brand-muted hover:border-brand-gold/20 hover:text-brand-gold"><BellRing className="h-3.5 w-3.5"/>{reminder ? formatNotificationDate(reminder.remindAt) : 'Przypomnij'}</button>{canUpdateTask(task,currentUserId,currentUserRole)?<button type="button" onClick={()=>onEdit(task)} className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 text-brand-muted" aria-label={`Edytuj zadanie: ${task.title}`}><Pencil className="h-3.5 w-3.5"/></button>:null}{task.recurrence?.enabled&&canManageSeries?<button type="button" onClick={()=>onStopRecurrence(task)} className="rounded-xl border border-white/10 px-3 py-2 text-xs text-brand-muted hover:text-red-300">Zakończ serię</button>:null}<button
         type="button"
         disabled={!canToggle || updating}
         onClick={() => onToggle(task)}

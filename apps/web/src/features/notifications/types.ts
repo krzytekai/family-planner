@@ -1,6 +1,7 @@
 export type NotificationType = 'task_assigned' | 'task_reminder' | 'calendar_reminder' | 'system'
 export type NotificationSourceType = 'task' | 'calendar_event' | 'system' | null
 export type ReminderSourceType = 'task' | 'calendar_event'
+export type ReminderKind = 'personal' | 'task_assignee'
 
 export interface AppNotification {
   id: string
@@ -24,6 +25,8 @@ export interface Reminder {
   remindAt: string
   timezone: string | null
   status: 'pending' | 'fired' | 'cancelled'
+  kind: ReminderKind
+  assigneeReminderOffsetMinutes: number | null
 }
 
 export interface ReminderSource {

@@ -18,7 +18,7 @@ function task(overrides: Partial<Task> = {}): Task {
     id: 'task-1', familyId: 'family-1', title: 'Wynieść śmieci', description: null,
     status: 'todo', priority: 'normal', assignedTo: { id: 'assignee-1', displayName: 'Ala' },
     dueAt: new Date(2026, 7, 17, 18).toISOString(), createdBy: { id: 'creator-1', displayName: 'Olek' },
-    createdAt: new Date(2026, 7, 1).toISOString(), updatedAt: new Date(2026, 7, 1).toISOString(), completedAt: null, ...overrides,
+    createdAt: new Date(2026, 7, 1).toISOString(), updatedAt: new Date(2026, 7, 1).toISOString(), completedAt: null, recurrence: null, assigneeReminderOffsetMinutes: null, ...overrides,
   }
 }
 

@@ -42,8 +42,8 @@ export function reminderProcessingDecision(recipientActive: boolean, typeEnabled
     : { createNotification: false, status: 'cancelled' as const }
 }
 
-export function reminderForSource(reminders: Reminder[], sourceType: Reminder['sourceType'], sourceId: string) {
-  return reminders.find((item) => item.status === 'pending' && item.sourceType === sourceType && item.sourceId === sourceId)
+export function reminderForSource(reminders: Reminder[], sourceType: Reminder['sourceType'], sourceId: string, kind: Reminder['kind'] = 'personal') {
+  return reminders.find((item) => item.status === 'pending' && item.sourceType === sourceType && item.sourceId === sourceId && item.kind === kind)
 }
 
 export function formatNotificationDate(value: string) {

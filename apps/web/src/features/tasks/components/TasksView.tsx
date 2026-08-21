@@ -14,6 +14,7 @@ const filters: Array<{ value: TaskFilter; label: string }> = [
   { value: 'mine', label: 'Moje' },
   { value: 'active', label: 'Do zrobienia' },
   { value: 'done', label: 'Wykonane' },
+  { value: 'recurring', label: 'Cykliczne' },
 ]
 
 const groups = [
@@ -35,9 +36,11 @@ interface TasksViewProps {
   onDelete: (task: Task) => void
   reminders: Reminder[]
   onReminder: (task: Task) => void
+  onEdit: (task: Task) => void
+  onStopRecurrence: (task: Task) => void
 }
 
-export function TasksView({ family, tasks, loading, error, actionError, updatingIds, canCreate, onQuickAdd, onToggle, onDelete, reminders, onReminder }: TasksViewProps) {
+export function TasksView({ family, tasks, loading, error, actionError, updatingIds, canCreate, onQuickAdd, onToggle, onDelete, reminders, onReminder, onEdit, onStopRecurrence }: TasksViewProps) {
   const [filter, setFilter] = useState<TaskFilter>('all')
   const filteredTasks = useMemo(() => filterTasks(tasks, filter, family.userId), [family.userId, filter, tasks])
   const groupedTasks = useMemo(() => groupTasksByStatus(filteredTasks), [filteredTasks])
@@ -58,7 +61,7 @@ export function TasksView({ family, tasks, loading, error, actionError, updating
       {!loading && error ? <div className="surface mt-5 rounded-2xl p-5"><p role="alert" className="rounded-xl border border-red-400/15 bg-red-400/5 p-4 text-sm text-red-300">Nie udało się pobrać zadań: {error}</p></div> : null}
       {!loading && !error && filteredTasks.length === 0 ? <div className="surface mt-5 rounded-2xl p-10 text-center"><div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-brand-gold/10 text-brand-gold"><ClipboardList className="h-6 w-6" /></div><h2 className="mt-4 font-semibold">Brak zadań dla tego filtra</h2><p className="mt-1 text-sm text-brand-muted">Wybierz inny filtr lub dodaj nowe zadanie.</p></div> : null}
 
-      {!loading && !error && filteredTasks.length > 0 ? <div className="mt-5 grid items-start gap-4 lg:grid-cols-3">{groups.map(({ status, title, icon: Icon, empty }) => <section key={status} className="surface overflow-hidden rounded-2xl"><header className="flex items-center justify-between border-b border-white/5 px-4 py-3.5"><h2 className="flex items-center gap-2 text-sm font-semibold"><Icon className="h-4 w-4 text-brand-gold" />{title}</h2><span className="rounded-full bg-white/5 px-2 py-1 text-[10px] text-brand-muted">{groupedTasks[status].length}</span></header><div className="space-y-3 p-3">{groupedTasks[status].length > 0 ? groupedTasks[status].map((task) => <TaskCard key={task.id} task={task} currentUserId={family.userId} currentUserRole={family.role} updating={updatingIds.has(task.id)} onToggle={onToggle} onDelete={onDelete} reminder={reminderForSource(reminders, 'task', task.id)} onReminder={onReminder} />) : <p className="px-2 py-8 text-center text-xs text-brand-muted">{empty}</p>}</div></section>)}</div> : null}
+      {!loading && !error && filteredTasks.length > 0 ? <div className="mt-5 grid items-start gap-4 lg:grid-cols-3">{groups.map(({ status, title, icon: Icon, empty }) => <section key={status} className="surface overflow-hidden rounded-2xl"><header className="flex items-center justify-between border-b border-white/5 px-4 py-3.5"><h2 className="flex items-center gap-2 text-sm font-semibold"><Icon className="h-4 w-4 text-brand-gold" />{title}</h2><span className="rounded-full bg-white/5 px-2 py-1 text-[10px] text-brand-muted">{groupedTasks[status].length}</span></header><div className="space-y-3 p-3">{groupedTasks[status].length > 0 ? groupedTasks[status].map((task) => <TaskCard key={task.id} task={task} currentUserId={family.userId} currentUserRole={family.role} updating={updatingIds.has(task.id)} onToggle={onToggle} onDelete={onDelete} reminder={reminderForSource(reminders, 'task', task.id)} onReminder={onReminder} onEdit={onEdit} onStopRecurrence={onStopRecurrence} />) : <p className="px-2 py-8 text-center text-xs text-brand-muted">{empty}</p>}</div></section>)}</div> : null}
     </div>
   )
 }

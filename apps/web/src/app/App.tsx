@@ -25,6 +25,7 @@ import { QuickTaskModal } from '../features/tasks/components/QuickTaskModal'
 import { TasksView } from '../features/tasks/components/TasksView'
 import { useTasks } from '../features/tasks/hooks/useTasks'
 import type { Task } from '../features/tasks/types'
+import { canManageTaskAutomation } from '../features/tasks/task-utils'
 import type { AppView } from './navigation'
 import { BudgetView } from '../features/budget/components/BudgetView'
 import { canViewBudget } from '../features/budget/budget-utils'
@@ -54,6 +55,7 @@ function FamilyPlanner({ family, canAdmin, adminOpen, setAdminOpen, displayName 
   const [shoppingCreateRequest, setShoppingCreateRequest] = useState(0)
   const [budgetCreateRequest, setBudgetCreateRequest] = useState(0)
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null)
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false)
   const [reminderSource, setReminderSource] = useState<ReminderSource | null>(null)
   const viewHistory = useRef<AppView[]>(['dashboard'])
@@ -101,6 +103,7 @@ function FamilyPlanner({ family, canAdmin, adminOpen, setAdminOpen, displayName 
 
   useNativeBackButton(() => {
     if (reminderSource) { setReminderSource(null); return }
+    if (taskToEdit) { setTaskToEdit(null); return }
     if (notificationCenterOpen) { setNotificationCenterOpen(false); return }
     if (taskToDelete) { setTaskToDelete(null); return }
     if (quickTaskOpen) { setQuickTaskOpen(false); return }
@@ -123,12 +126,13 @@ function FamilyPlanner({ family, canAdmin, adminOpen, setAdminOpen, displayName 
       <AppHeader familyName={family.familyName} subtitle={headerSubtitle} displayName={displayName} unreadCount={notificationState.unreadCount} onOpenNotifications={() => { setNotificationCenterOpen(true); void notificationState.refresh() }} onLogout={() => void logout()}/>
       {activeView === 'dashboard' ? <DashboardView family={family} displayName={displayName} todayTasks={taskState.todayTasks} stats={taskState.stats} loading={taskState.loading} error={taskState.error} actionError={taskState.actionError} updatingIds={taskState.updatingIds} canCreateTasks={canCreateTasks} onQuickAdd={openQuickTask} onViewTasks={() => navigate('tasks')} onViewCalendar={() => navigate('calendar')} onViewShopping={() => navigate('shopping')} onToggle={(task) => void taskState.toggleCompleted(task)} onDelete={setTaskToDelete} unreadNotifications={notificationState.unreadCount} onOpenNotifications={() => setNotificationCenterOpen(true)} canBudget={canBudget} onViewBudget={() => navigate('budget')}/> : null}
       {activeView === 'calendar' ? <CalendarView family={family} createRequest={calendarCreateRequest} reminders={reminderState.reminders} onViewTask={() => navigate('tasks')} onReminder={remindEvent}/> : null}
-      {activeView === 'tasks' ? <TasksView family={family} tasks={taskState.tasks} loading={taskState.loading} error={taskState.error} actionError={taskState.actionError} updatingIds={taskState.updatingIds} canCreate={canCreateTasks} onQuickAdd={openQuickTask} onToggle={(task) => void taskState.toggleCompleted(task)} onDelete={setTaskToDelete} reminders={reminderState.reminders} onReminder={remindTask}/> : null}
+      {activeView === 'tasks' ? <TasksView family={family} tasks={taskState.tasks} loading={taskState.loading} error={taskState.error} actionError={taskState.actionError} updatingIds={taskState.updatingIds} canCreate={canCreateTasks} onQuickAdd={openQuickTask} onToggle={(task) => void taskState.toggleCompleted(task)} onDelete={setTaskToDelete} reminders={reminderState.reminders} onReminder={remindTask} onEdit={setTaskToEdit} onStopRecurrence={(task)=>{if(window.confirm(`Zakończyć serię „${task.title}”? Historia zadań zostanie zachowana.`))void taskState.stopRecurrence(task)}}/> : null}
       {activeView === 'shopping' ? <ShoppingView family={family} quickAddRequest={shoppingCreateRequest}/> : null}
       {activeView === 'budget' && canBudget ? <BudgetView family={family} quickAddRequest={budgetCreateRequest}/> : null}
     </main>
     {adminOpen && canAdmin ? <AdminPanel family={family} onClose={() => setAdminOpen(false)}/> : null}
     {quickTaskOpen ? <QuickTaskModal familyId={family.familyId} members={taskState.members} saving={taskState.saving} onCreate={taskState.createTask} onClose={() => setQuickTaskOpen(false)}/> : null}
+    {taskToEdit ? <QuickTaskModal familyId={family.familyId} members={taskState.members} saving={taskState.saving} task={taskToEdit} reminder={reminderForSource(reminderState.reminders,'task',taskToEdit.id)} canManageRecurrence={canManageTaskAutomation(taskToEdit,family.userId,family.role)} onCreate={taskState.createTask} onUpdate={taskState.updateTask} onClose={()=>setTaskToEdit(null)}/> : null}
     {taskToDelete ? <DeleteTaskModal task={taskToDelete} deleting={taskState.deletingIds.has(taskToDelete.id)} onDelete={taskState.deleteTask} onClose={() => setTaskToDelete(null)}/> : null}
     {notificationCenterOpen ? <NotificationCenter notifications={notificationState.notifications} reminders={reminderState.reminders} preferences={notificationState.preferences} systemPushPermission={nativePush.permission} loading={notificationState.loading || reminderState.loading} saving={notificationState.saving || reminderState.saving} error={notificationState.error ?? reminderState.error ?? nativePush.error} onOpen={(item) => { void notificationState.setRead(item, true); setNotificationCenterOpen(false); navigate(notificationDestination(item)) }} onToggleRead={(item) => void notificationState.setRead(item, item.readAt !== null)} onMarkAllRead={() => void notificationState.markAllRead()} onEditReminder={(item) => { editReminder(item); setNotificationCenterOpen(false) }} onDeleteReminder={(id) => void reminderState.remove(id)} onPreferences={(value) => void notificationState.savePreferences(value)} onClose={() => setNotificationCenterOpen(false)}/> : null}
     {nativePush.showPreprompt ? <PushPermissionPrompt busy={nativePush.registering} onEnable={() => void nativePush.acceptPreprompt()} onLater={nativePush.dismissPreprompt}/> : null}

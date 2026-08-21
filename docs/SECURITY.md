@@ -23,6 +23,9 @@ Polityki `public.tasks` realizują zasadę najmniejszych uprawnień:
 - przypisanie użytkownika spoza rodziny jest odrzucane,
 - klient nie ustala `created_by`; wartość pochodzi z uwierzytelnionej sesji przez `auth.uid()`.
 - klient nie ustala `completed_at`; znacznik czasu wykonania nadaje i utrzymuje prywatna funkcja triggerowa bazy.
+- klient nie może bezpośrednio ustawić `recurrence_series_id`, indeksu occurrence ani offsetu przypomnienia assignee,
+- utworzenie i zmiana serii przechodzą przez wąskie RPC z `auth.uid()`, kontrolą roli, aktywnego członkostwa i zgodności `family_id`,
+- przypomnienie dla assignee nie przyjmuje odbiorcy od klienta; backend odczytuje `tasks.assigned_to` i sprawdza aktywne członkostwo tej samej rodziny.
 
 Grants i RLS działają razem: grants ograniczają dostępne operacje i kolumny, a policies ograniczają wiersze oraz wartości zapisu.
 
@@ -42,6 +45,7 @@ RLS pozwala każdemu aktywnemu członkowi aktualizować produkt, aby możliwy by
 
 - Użytkownik czyta i zmienia stan odczytu wyłącznie własnych powiadomień w aktywnej rodzinie.
 - Przypomnienia są osobiste: odbiorca i twórca pochodzą z `auth.uid()`, nie z dowolnych pól klienta.
+- Wyjątkiem są przypomnienia `task_assignee` tworzone przez `set_task_assignee_reminder`; odbiorcę zawsze wyznacza baza z `tasks.assigned_to`, a bezpośrednie granty do `reminder_kind`, offsetu i odbiorcy pozostają odebrane. Zarządzać nimi może owner/admin albo twórca taska — samo przypisanie, w tym przypisanie dziecka, nie daje tego prawa.
 - Trigger sprawdza, czy źródłowe zadanie lub wydarzenie należy do tej samej rodziny; usunięcie źródła usuwa oczekujące przypomnienia.
 - Tokeny urządzeń są widoczne i modyfikowalne tylko przez ich właściciela. Service role ani klucze FCM nie trafiają do przeglądarki.
 - Funkcje generujące skrzynkę i audyt działają jako `SECURITY DEFINER`, mają pusty `search_path`, jawnie kwalifikowane obiekty i brak `EXECUTE` dla ról publicznych.

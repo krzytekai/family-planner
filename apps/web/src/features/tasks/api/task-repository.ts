@@ -1,6 +1,6 @@
 import { getSupabaseClient } from '../../../lib/supabase'
 import type { FamilyRole } from '../../../types/domain'
-import type { NewTaskInput, Task, TaskMember, TaskPerson, TaskPriority, TaskStatus } from '../types'
+import type { NewTaskInput, RecurrenceRule, Task, TaskMember, TaskPerson, TaskPriority, TaskStatus, UpdateTaskInput } from '../types'
 
 type RelatedProfile = { id: string; display_name: string } | Array<{ id: string; display_name: string }> | null
 
@@ -17,8 +17,11 @@ interface TaskRow {
   created_at: string
   updated_at: string
   completed_at: string | null
+  assignee_reminder_offset_minutes: number | null
   assignee: RelatedProfile
   creator: RelatedProfile
+  occurrence_index: number
+  series: { id: string; recurrence_rule: RecurrenceRule; recurrence_timezone: string; recurrence_enabled: boolean } | Array<{ id: string; recurrence_rule: RecurrenceRule; recurrence_timezone: string; recurrence_enabled: boolean }> | null
 }
 
 interface MemberRow {
@@ -32,6 +35,8 @@ export interface TaskRepository {
   listTasksInRange(familyId: string, rangeStart: Date, rangeEnd: Date): Promise<Task[]>
   listMembers(familyId: string): Promise<TaskMember[]>
   createTask(input: NewTaskInput): Promise<void>
+  updateTask(input: UpdateTaskInput): Promise<void>
+  stopRecurrence(taskId: string): Promise<void>
   setTaskCompleted(familyId: string, taskId: string, completed: boolean): Promise<void>
   deleteTask(familyId: string, taskId: string): Promise<void>
 }
@@ -54,6 +59,7 @@ function mapTask(row: TaskRow): Task {
   }
   const assignee = profileFromRelation(row.assignee)
     ?? (row.assigned_to ? { id: row.assigned_to, displayName: 'Nieaktywny użytkownik' } : null)
+  const series = Array.isArray(row.series) ? row.series[0] : row.series
 
   return {
     id: row.id,
@@ -68,6 +74,14 @@ function mapTask(row: TaskRow): Task {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     completedAt: row.completed_at,
+    recurrence: series ? {
+      seriesId: series.id,
+      rule: series.recurrence_rule,
+      timezone: series.recurrence_timezone,
+      enabled: series.recurrence_enabled,
+      occurrenceIndex: row.occurrence_index,
+    } : null,
+    assigneeReminderOffsetMinutes: row.assignee_reminder_offset_minutes,
   }
 }
 
@@ -89,6 +103,9 @@ export function createTaskRepository(): TaskRepository {
           created_at,
           updated_at,
           completed_at,
+          assignee_reminder_offset_minutes,
+          occurrence_index,
+          series:task_recurrence_series!tasks_recurrence_series_family_fkey(id, recurrence_rule, recurrence_timezone, recurrence_enabled),
           assignee:profiles!tasks_assigned_to_fkey(id, display_name),
           creator:profiles!tasks_created_by_fkey(id, display_name)
         `)
@@ -106,6 +123,9 @@ export function createTaskRepository(): TaskRepository {
         .select(`
           id, family_id, title, description, status, priority, assigned_to, created_by,
           due_at, created_at, updated_at, completed_at,
+          assignee_reminder_offset_minutes,
+          occurrence_index,
+          series:task_recurrence_series!tasks_recurrence_series_family_fkey(id, recurrence_rule, recurrence_timezone, recurrence_enabled),
           assignee:profiles!tasks_assigned_to_fkey(id, display_name),
           creator:profiles!tasks_created_by_fkey(id, display_name)
         `)
@@ -135,15 +155,70 @@ export function createTaskRepository(): TaskRepository {
     },
 
     async createTask(input) {
-      const { error } = await getClient().from('tasks').insert({
-        family_id: input.familyId,
-        title: input.title.trim(),
-        description: input.description.trim() || null,
-        priority: input.priority,
-        assigned_to: input.assignedTo,
-        due_at: input.dueAt,
-      })
+      let taskId: string
+      if (input.recurrence) {
+        const { data, error } = await getClient().rpc('create_recurring_task', {
+          task_family_id: input.familyId,
+          task_title: input.title.trim(),
+          task_description: input.description.trim() || null,
+          task_priority: input.priority,
+          task_assigned_to: input.assignedTo,
+          task_due_at: input.dueAt,
+          task_recurrence_rule: input.recurrence.rule,
+          task_recurrence_timezone: input.recurrence.timezone,
+        })
+        if (error) throw new Error(error.message)
+        taskId = data as string
+      } else {
+        const { data, error } = await getClient().from('tasks').insert({
+          family_id: input.familyId, title: input.title.trim(),
+          description: input.description.trim() || null, priority: input.priority,
+          assigned_to: input.assignedTo, due_at: input.dueAt,
+        }).select('id').single()
+        if (error) throw new Error(error.message)
+        taskId = data.id
+      }
+      if (input.assigneeReminderOffsetMinutes !== null) {
+        const { error } = await getClient().rpc('set_task_assignee_reminder', {
+          target_task_id: taskId, offset_minutes: input.assigneeReminderOffsetMinutes,
+        })
+        if (error) throw new Error(error.message)
+      }
+    },
 
+    async updateTask(input) {
+      const { error } = await getClient().from('tasks').update({
+        title: input.title.trim(), description: input.description.trim() || null,
+        priority: input.priority, assigned_to: input.assignedTo, due_at: input.dueAt,
+      }).eq('id', input.taskId).eq('family_id', input.familyId).select('id').single()
+      if (error) throw new Error(error.message)
+      if (input.changeRecurrence && input.recurrence) {
+        const { error: recurrenceError } = await getClient().rpc('update_task_recurrence', {
+          target_task_id: input.taskId, next_rule: input.recurrence.rule,
+          next_timezone: input.recurrence.timezone, enabled: true,
+        })
+        if (recurrenceError) throw new Error(recurrenceError.message)
+      } else if (input.changeRecurrence && input.stopRecurrence) {
+        const { error: recurrenceError } = await getClient().rpc('update_task_recurrence', {
+          target_task_id: input.taskId, next_rule: null, next_timezone: null, enabled: false,
+        })
+        if (recurrenceError) throw new Error(recurrenceError.message)
+      }
+      if (input.changeAssigneeReminder && input.assigneeReminderOffsetMinutes !== null) {
+        const { error: reminderError } = await getClient().rpc('set_task_assignee_reminder', {
+          target_task_id: input.taskId, offset_minutes: input.assigneeReminderOffsetMinutes,
+        })
+        if (reminderError) throw new Error(reminderError.message)
+      } else if (input.changeAssigneeReminder) {
+        const { error: reminderError } = await getClient().rpc('cancel_task_assignee_reminder', { target_task_id: input.taskId })
+        if (reminderError) throw new Error(reminderError.message)
+      }
+    },
+
+    async stopRecurrence(taskId) {
+      const { error } = await getClient().rpc('update_task_recurrence', {
+        target_task_id: taskId, next_rule: null, next_timezone: null, enabled: false,
+      })
       if (error) throw new Error(error.message)
     },
 

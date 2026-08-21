@@ -1,75 +1,39 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { X } from 'lucide-react'
-import type { NewTaskInput, TaskMember, TaskPriority } from '../types'
+import type { Reminder } from '../../notifications/types'
+import { serializeRecurrence, validateRecurrenceRule } from '../task-utils'
+import type { NewTaskInput, RecurrenceType, Task, TaskMember, TaskPriority, UpdateTaskInput } from '../types'
 
-interface QuickTaskModalProps {
-  familyId: string
-  members: TaskMember[]
-  saving: boolean
-  onClose: () => void
-  onCreate: (input: NewTaskInput) => Promise<void>
+interface Props {
+  familyId: string; members: TaskMember[]; saving: boolean; task?: Task; reminder?: Reminder
+  canManageRecurrence?: boolean; onClose: () => void; onCreate: (input: NewTaskInput) => Promise<void>; onUpdate?: (input: UpdateTaskInput) => Promise<void>
 }
+const weekdays = [{id:1,label:'Pn'},{id:2,label:'Wt'},{id:3,label:'Śr'},{id:4,label:'Cz'},{id:5,label:'Pt'},{id:6,label:'So'},{id:7,label:'Nd'}]
+const offsets = [{value:10,label:'10 min'},{value:30,label:'30 min'},{value:60,label:'1 godz.'},{value:180,label:'3 godz.'},{value:1440,label:'1 dzień'}]
 
-export function QuickTaskModal({ familyId, members, saving, onClose, onCreate }: QuickTaskModalProps) {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [dueAt, setDueAt] = useState('')
-  const [priority, setPriority] = useState<TaskPriority>('normal')
-  const [assignedTo, setAssignedTo] = useState('')
-  const [error, setError] = useState<string | null>(null)
+function localDateTime(value?: string | null) { if (!value) return ''; const date=new Date(value); return new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,16) }
 
-  useEffect(() => {
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === 'Escape' && !saving) onClose()
-    }
-    window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
-  }, [onClose, saving])
-
-  async function submit(event: FormEvent) {
-    event.preventDefault()
-    setError(null)
-    try {
-      await onCreate({
-        familyId,
-        title,
-        description,
-        dueAt: new Date(dueAt).toISOString(),
-        priority,
-        assignedTo: assignedTo || null,
-      })
-      onClose()
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Nie udało się zapisać zadania.')
-    }
+export function QuickTaskModal({familyId,members,saving,task,reminder,canManageRecurrence=true,onClose,onCreate,onUpdate}:Props){
+  const initial=task?.recurrence?.rule
+  const [title,setTitle]=useState(task?.title??''); const [description,setDescription]=useState(task?.description??'')
+  const [dueAt,setDueAt]=useState(localDateTime(task?.dueAt)); const [priority,setPriority]=useState<TaskPriority>(task?.priority??'normal')
+  const [assignedTo,setAssignedTo]=useState(task?.assignedTo?.id??''); const [type,setType]=useState<RecurrenceType|'none'>(initial?.type??'none')
+  const [interval,setInterval]=useState(initial?.interval??1); const [days,setDays]=useState<number[]>(initial?.weekdays??[new Date().getDay()||7])
+  const initialOffset=task?.assigneeReminderOffsetMinutes??reminder?.assigneeReminderOffsetMinutes??30; const [reminderEnabled,setReminderEnabled]=useState((task?.assigneeReminderOffsetMinutes??reminder?.assigneeReminderOffsetMinutes)!=null)
+  const [offset,setOffset]=useState(initialOffset); const [custom,setCustom]=useState(!offsets.some((item)=>item.value===initialOffset)); const [error,setError]=useState<string|null>(null)
+  const rule=useMemo(()=>serializeRecurrence(type,interval,days,dueAt),[days,dueAt,interval,type]); const reminderBlocked=!assignedTo||!dueAt
+  async function submit(event:FormEvent){event.preventDefault();setError(null);if(!dueAt){setError('Ustaw termin zadania.');return}if(rule&&!validateRecurrenceRule(rule)){setError('Uzupełnij poprawnie regułę powtarzania.');return}if(reminderEnabled&&reminderBlocked){setError(!assignedTo?'Najpierw przypisz zadanie do członka rodziny.':'Ustaw termin zadania, aby włączyć przypomnienie.');return}if(reminderEnabled&&new Date(dueAt).getTime()-offset*60000<=Date.now()){setError('Termin przypomnienia musi przypadać w przyszłości.');return}
+    const input:NewTaskInput={familyId,title,description,dueAt:new Date(dueAt).toISOString(),priority,assignedTo:assignedTo||null,recurrence:rule?{rule,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone}:null,assigneeReminderOffsetMinutes:reminderEnabled?offset:null}
+    try{if(task&&onUpdate)await onUpdate({...input,taskId:task.id,stopRecurrence:Boolean(task.recurrence&&!rule),changeRecurrence:canManageRecurrence,changeAssigneeReminder:canManageRecurrence});else await onCreate(input);onClose()}catch(reason){setError(reason instanceof Error?reason.message:'Nie udało się zapisać zadania.')}
   }
-
-  return (
-    <div className="fixed inset-0 z-[80] grid place-items-end bg-black/75 p-0 backdrop-blur-sm sm:place-items-center sm:p-6" role="presentation">
-      <section role="dialog" aria-modal="true" aria-labelledby="quick-task-title" className="surface max-h-[92vh] w-full overflow-y-auto rounded-t-3xl p-5 sm:max-w-xl sm:rounded-3xl sm:p-6">
-        <header className="mb-5 flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[.18em] text-brand-gold">Szybkie dodawanie</p>
-            <h2 id="quick-task-title" className="mt-1 text-xl font-semibold">Nowe zadanie</h2>
-          </div>
-          <button type="button" onClick={onClose} disabled={saving} aria-label="Zamknij" className="rounded-xl p-2 text-brand-muted hover:bg-white/5 hover:text-brand-text disabled:cursor-not-allowed disabled:opacity-50"><X className="h-5 w-5" /></button>
-        </header>
-
-        <form onSubmit={submit} className="space-y-4">
-          <label className="block text-xs text-brand-muted">Tytuł<input autoFocus required maxLength={200} value={title} onChange={(event) => setTitle(event.target.value)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-brand-text outline-none focus:border-brand-gold/50" /></label>
-          <label className="block text-xs text-brand-muted">Opis <span className="text-white/35">(opcjonalnie)</span><textarea rows={3} value={description} onChange={(event) => setDescription(event.target.value)} className="mt-1 w-full resize-none rounded-xl border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-brand-text outline-none focus:border-brand-gold/50" /></label>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block text-xs text-brand-muted">Termin<input required type="datetime-local" value={dueAt} onChange={(event) => setDueAt(event.target.value)} className="mt-1 w-full rounded-xl border border-white/10 bg-[#101017] px-3 py-2.5 text-sm text-brand-text outline-none focus:border-brand-gold/50" /></label>
-            <label className="block text-xs text-brand-muted">Priorytet<select value={priority} onChange={(event) => setPriority(event.target.value as TaskPriority)} className="mt-1 w-full rounded-xl border border-white/10 bg-[#101017] px-3 py-2.5 text-sm text-brand-text outline-none focus:border-brand-gold/50"><option value="low">Niski</option><option value="normal">Normalny</option><option value="high">Wysoki</option></select></label>
-          </div>
-          <label className="block text-xs text-brand-muted">Przypisz do członka rodziny<select value={assignedTo} onChange={(event) => setAssignedTo(event.target.value)} className="mt-1 w-full rounded-xl border border-white/10 bg-[#101017] px-3 py-2.5 text-sm text-brand-text outline-none focus:border-brand-gold/50"><option value="">Nieprzypisane</option>{members.map((member) => <option key={member.userId} value={member.userId}>{member.displayName} ({member.role})</option>)}</select></label>
-          {error ? <p role="alert" className="rounded-xl border border-red-400/15 bg-red-400/5 px-3 py-2 text-sm text-red-300">{error}</p> : null}
-          <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
-            <button type="button" onClick={onClose} disabled={saving} className="rounded-xl border border-white/10 px-4 py-2.5 text-sm text-brand-muted hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50">Anuluj</button>
-            <button disabled={saving} className="rounded-xl bg-brand-gold px-5 py-2.5 text-sm font-semibold text-black transition hover:brightness-105 disabled:cursor-wait disabled:opacity-60">{saving ? 'Zapisywanie…' : 'Zapisz zadanie'}</button>
-          </div>
-        </form>
-      </section>
-    </div>
-  )
+  const inputClass='mt-1 w-full rounded-xl border border-white/10 bg-[#101017] px-3 py-2.5 text-sm text-brand-text outline-none focus:border-brand-gold/50'
+  return <div className="fixed inset-0 z-[80] grid place-items-end bg-black/75 backdrop-blur-sm sm:place-items-center sm:p-6"><section role="dialog" aria-modal="true" className="surface max-h-[94vh] w-full overflow-y-auto rounded-t-3xl p-5 sm:max-w-2xl sm:rounded-3xl sm:p-6"><header className="mb-4 flex justify-between"><div><p className="text-xs uppercase tracking-[.18em] text-brand-gold">{task?'Edycja':'Szybkie dodawanie'}</p><h2 className="mt-1 text-xl font-semibold">{task?'Edytuj zadanie':'Nowe zadanie'}</h2></div><button type="button" onClick={onClose} disabled={saving} aria-label="Zamknij" className="p-2 text-brand-muted"><X className="h-5 w-5"/></button></header><form onSubmit={(event)=>void submit(event)} className="space-y-4">
+    <label className="block text-xs text-brand-muted">Tytuł<input autoFocus required maxLength={200} value={title} onChange={(e)=>setTitle(e.target.value)} className={inputClass}/></label>
+    <label className="block text-xs text-brand-muted">Opis <span className="text-white/35">(opcjonalnie)</span><textarea rows={2} value={description} onChange={(e)=>setDescription(e.target.value)} className={inputClass}/></label>
+    <div className="grid gap-3 sm:grid-cols-2"><label className="text-xs text-brand-muted">Termin<input required type="datetime-local" value={dueAt} onChange={(e)=>setDueAt(e.target.value)} className={inputClass}/></label><label className="text-xs text-brand-muted">Priorytet<select value={priority} onChange={(e)=>setPriority(e.target.value as TaskPriority)} className={inputClass}><option value="low">Niski</option><option value="normal">Normalny</option><option value="high">Wysoki</option></select></label></div>
+    <label className="block text-xs text-brand-muted">Przypisz do<select value={assignedTo} onChange={(e)=>setAssignedTo(e.target.value)} className={inputClass}><option value="">Nieprzypisane</option>{members.map((m)=><option key={m.userId} value={m.userId}>{m.displayName} ({m.role})</option>)}</select></label>
+    <fieldset className="rounded-2xl border border-white/[.07] p-3"><legend className="px-1 text-xs font-medium text-brand-gold">Powtarzanie</legend><div className="grid gap-3 sm:grid-cols-2"><label className="text-xs text-brand-muted">Reguła<select value={type} disabled={!canManageRecurrence||Boolean(task&&!task.recurrence)} onChange={(e)=>setType(e.target.value as RecurrenceType|'none')} className={inputClass}><option value="none">Nie powtarzaj</option><option value="daily">Codziennie / co X dni</option><option value="weekly">Co tydzień / wybrane dni</option><option value="monthly">Co miesiąc</option><option value="yearly">Co rok</option></select></label>{type!=='none'?<label className="text-xs text-brand-muted">Co ile okresów<input type="number" min="1" max="1000" disabled={!canManageRecurrence} value={interval} onChange={(e)=>setInterval(Number(e.target.value))} className={inputClass}/></label>:null}</div>{type==='weekly'?<div className="mt-3 flex flex-wrap gap-2">{weekdays.map((day)=><button key={day.id} type="button" disabled={!canManageRecurrence} aria-pressed={days.includes(day.id)} onClick={()=>setDays((current)=>current.includes(day.id)?current.filter((id)=>id!==day.id):[...current,day.id])} className={`h-9 min-w-9 rounded-lg border text-xs ${days.includes(day.id)?'border-brand-gold bg-brand-gold text-black':'border-white/10 text-brand-muted'}`}>{day.label}</button>)}</div>:null}{task&&!task.recurrence?<p className="mt-2 text-[11px] text-brand-muted">Nową serię można rozpocząć przy tworzeniu zadania.</p>:null}{!canManageRecurrence?<p className="mt-2 text-[11px] text-brand-muted">Nie masz uprawnień do zmiany serii.</p>:null}</fieldset>
+    <fieldset className="rounded-2xl border border-white/[.07] p-3"><legend className="px-1 text-xs font-medium text-brand-gold">Przypomnienie</legend><label className="flex min-h-11 items-center gap-3 text-sm"><input type="checkbox" checked={reminderEnabled} disabled={reminderBlocked||!canManageRecurrence} onChange={(e)=>setReminderEnabled(e.target.checked)} className="h-5 w-5 accent-brand-gold"/>Przypomnij przypisanej osobie</label>{!canManageRecurrence?<p className="text-[11px] text-brand-muted">Tylko autor zadania lub administrator może zmienić to przypomnienie.</p>:!assignedTo?<p className="text-[11px] text-brand-muted">Najpierw przypisz zadanie do członka rodziny.</p>:!dueAt?<p className="text-[11px] text-brand-muted">Ustaw termin zadania, aby włączyć przypomnienie.</p>:null}{reminderEnabled?<div className="mt-2 flex gap-2"><select disabled={!canManageRecurrence} value={custom?'custom':String(offset)} onChange={(e)=>{setCustom(e.target.value==='custom');if(e.target.value!=='custom')setOffset(Number(e.target.value))}} className={inputClass}>{offsets.map((item)=><option key={item.value} value={item.value}>{item.label} wcześniej</option>)}<option value="custom">Niestandardowe</option></select>{custom?<input disabled={!canManageRecurrence} aria-label="Niestandardowy offset w minutach" type="number" min="1" max="525600" value={offset} onChange={(e)=>setOffset(Number(e.target.value))} className={`${inputClass} w-28`}/>:null}</div>:null}</fieldset>
+    {error?<p role="alert" className="rounded-xl border border-red-400/15 bg-red-400/5 px-3 py-2 text-sm text-red-300">{error}</p>:null}<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><button type="button" onClick={onClose} disabled={saving} className="rounded-xl border border-white/10 px-4 py-2.5 text-sm text-brand-muted">Anuluj</button><button disabled={saving} className="rounded-xl bg-brand-gold px-5 py-2.5 text-sm font-semibold text-black disabled:opacity-60">{saving?'Zapisywanie…':'Zapisz zadanie'}</button></div>
+  </form></section></div>
 }

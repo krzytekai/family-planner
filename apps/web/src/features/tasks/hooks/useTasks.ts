@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createTaskRepository } from '../api/task-repository'
 import { getTaskStats, getTodayTasks } from '../task-utils'
-import type { NewTaskInput, Task, TaskMember } from '../types'
+import type { NewTaskInput, Task, TaskMember, UpdateTaskInput } from '../types'
 
 export function useTasks(familyId: string) {
   const repository = useMemo(() => createTaskRepository(), [])
@@ -64,6 +64,21 @@ export function useTasks(familyId: string) {
     }
   }, [refresh, repository])
 
+  const updateTask = useCallback(async (input: UpdateTaskInput) => {
+    setSaving(true)
+    setActionError(null)
+    try { await repository.updateTask(input); await refresh() }
+    catch (reason) { const message = reason instanceof Error ? reason.message : 'Nie udało się zaktualizować zadania.'; setActionError(message); throw new Error(message) }
+    finally { setSaving(false) }
+  }, [refresh, repository])
+
+  const stopRecurrence = useCallback(async (task: Task) => {
+    setUpdatingIds((current) => new Set(current).add(task.id)); setActionError(null)
+    try { await repository.stopRecurrence(task.id); await refresh() }
+    catch (reason) { const message = reason instanceof Error ? reason.message : 'Nie udało się zakończyć serii.'; setActionError(message); throw new Error(message) }
+    finally { setUpdatingIds((current) => { const next = new Set(current); next.delete(task.id); return next }) }
+  }, [refresh, repository])
+
   const toggleCompleted = useCallback(async (task: Task) => {
     setUpdatingIds((current) => new Set(current).add(task.id))
     setActionError(null)
@@ -115,6 +130,8 @@ export function useTasks(familyId: string) {
     error,
     actionError,
     createTask,
+    updateTask,
+    stopRecurrence,
     toggleCompleted,
     deleteTask,
   }

@@ -2,7 +2,24 @@ import type { FamilyRole } from '../../types/domain'
 
 export type TaskStatus = 'todo' | 'in_progress' | 'done'
 export type TaskPriority = 'low' | 'normal' | 'high'
-export type TaskFilter = 'all' | 'today' | 'mine' | 'active' | 'done'
+export type TaskFilter = 'all' | 'today' | 'mine' | 'active' | 'done' | 'recurring'
+export type RecurrenceType = 'daily' | 'weekly' | 'monthly' | 'yearly'
+
+export interface RecurrenceRule {
+  type: RecurrenceType
+  interval: number
+  weekdays?: number[]
+  day_of_month?: number
+  month?: number
+}
+
+export interface TaskRecurrence {
+  seriesId: string
+  rule: RecurrenceRule
+  timezone: string
+  enabled: boolean
+  occurrenceIndex: number
+}
 
 export interface TaskPerson {
   id: string
@@ -22,6 +39,8 @@ export interface Task {
   createdAt: string
   updatedAt: string
   completedAt: string | null
+  recurrence: TaskRecurrence | null
+  assigneeReminderOffsetMinutes: number | null
 }
 
 export interface TaskMember {
@@ -37,6 +56,15 @@ export interface NewTaskInput {
   priority: TaskPriority
   assignedTo: string | null
   dueAt: string
+  recurrence: { rule: RecurrenceRule; timezone: string } | null
+  assigneeReminderOffsetMinutes: number | null
+}
+
+export interface UpdateTaskInput extends NewTaskInput {
+  taskId: string
+  stopRecurrence: boolean
+  changeRecurrence: boolean
+  changeAssigneeReminder: boolean
 }
 
 export interface TaskStats {
