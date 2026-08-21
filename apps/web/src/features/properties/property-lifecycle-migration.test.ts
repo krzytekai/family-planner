@@ -1,0 +1,12 @@
+import{readFileSync}from'node:fs';import{resolve}from'node:path';import{describe,expect,it}from'vitest';const sql=readFileSync(resolve(process.cwd(),'../../database/migrations/0014_property_lifecycle.sql'),'utf8')
+const functionBody=(name:string)=>sql.slice(sql.indexOf(`create or replace function public.${name}`),sql.indexOf(`revoke all on function public.${name}`))
+describe('0014 property lifecycle contract',()=>{
+ it('archives and restores through narrow RPCs',()=>{expect(sql).toContain('public.archive_property');expect(sql).toContain('public.restore_property');expect(sql).toContain('suspended_by_property=true');expect(sql).toContain('suspended_by_property=false')})
+ it('keeps history while cancelling pending reminders on archive',()=>{const archive=functionBody('archive_property');expect(archive).toMatch(/update public\.reminders[\s\S]*status='cancelled'/);expect(archive).not.toContain('delete from public.property_charges')})
+ it('restores reminders without duplicating occurrences',()=>{const restore=functionBody('restore_property');expect(restore).toContain('ensure_property_charge_reminders');expect(restore).not.toContain('insert into public.property_charges')})
+ it('permanently deletes dependent property data atomically',()=>{for(const table of ['public.notifications','public.reminders','public.property_charges','public.property_charge_definitions','public.property_units','public.properties'])expect(sql).toContain(`delete from ${table}`)})
+ it('preserves linked budget transactions',()=>{expect(sql).not.toContain('delete from public.budget_transactions');expect(sql).toContain('linked_budget_transactions_preserved')})
+ it('allows permanent deletion only to owner or admin',()=>{expect(sql).toContain("array['owner','admin']::public.family_role[]");expect(sql).not.toMatch(/delete_property_permanently[\s\S]{0,300}'adult'/)})
+ it('denies anon and cross-family mutations',()=>{for(const name of ['archive_property','restore_property','delete_property_permanently'])expect(sql).toContain(`revoke all on function public.${name}(uuid,uuid) from public,anon`);expect(sql).toMatch(/id=target_property_id and family_id=target_family_id for update/g)})
+ it('prevents direct active writes and active definitions under archived properties',()=>{expect(sql).toContain('revoke update(active) on public.properties');expect(sql).toContain('charge definition cannot be active for an archived property')})
+})

@@ -69,3 +69,4 @@ RLS dopuszcza dane finansowe wyłącznie dla aktywnych ról `owner`, `admin` i `
 - Należności, reguły przypomnień, harmonogramy i linki budżetowe nie mają bezpośrednich grantów zapisu. Krytyczne operacje przechodzą przez narrow RPC z kontrolą roli i pustym `search_path`.
 - Odbiorcą przypomnienia jest wyłącznie `auth.uid()` zapisujący definicję. Klient nie może ustawić backendowego `reminder_kind` ani offsetu na dowolnym reminderze.
 - Płatność blokuje wiersz charge przed utworzeniem lub aktualizacją powiązanej transakcji, co chroni przed duplikacją przy retry.
+- Archiwizacja i przywracanie wymagają aktywnej roli owner/admin/adult i przechodzą przez RPC. Trwałe usunięcie wymaga owner/admin, atomowo usuwa dane zależne nieruchomości i celowo zachowuje niezależne transakcje budżetowe.

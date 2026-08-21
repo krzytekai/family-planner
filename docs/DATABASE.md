@@ -18,6 +18,7 @@ Migracje są wykonywane kolejno i ręcznie zatwierdzane przed uruchomieniem na �
 12. `0011_recurring_tasks.sql` (zastosowana ręcznie na produkcyjnym Supabase)
 13. `0012_family_platform_administration.sql` (wdrożona produkcyjnie; post-migration verification: PASS)
 14. `0013_properties_and_charges.sql` (wdrożona produkcyjnie; post-migration verification: PASS)
+15. `0014_property_lifecycle.sql` (przygotowana; oczekuje na ręczne wdrożenie)
 
 Codex przygotowuje pliki migracji, ale nie uruchamia ich samodzielnie na produkcyjnym projekcie Supabase.
 

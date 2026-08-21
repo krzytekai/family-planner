@@ -31,6 +31,9 @@ Bezpieczne zarządzanie rodziną, przełączanie wielu rodzin, tworzenie kolejny
 ## Sprint 7.6 — Nieruchomości i opłaty
 Nieruchomości i ich części, definicje opłat jednorazowych oraz cyklicznych, należności, tabela roku, historia, przypomnienia i idempotentne powiązanie z Budżetem. Migracja 0013 została wdrożona produkcyjnie i przeszła post-migration verification. Sprint zakończony.
 
+### Sprint 7.6.1 — cykl życia nieruchomości
+Archiwizacja i przywracanie z zachowaniem historii, kontrolowane trwałe usuwanie oraz pełne polskie etykiety UI. Migracja 0014 oczekuje na ręczne wdrożenie i verification.
+
 ## Później — Backup Center
 Zakresowy backup, szyfrowanie, historia i selektywne przywracanie.
 
