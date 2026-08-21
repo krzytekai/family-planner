@@ -61,3 +61,11 @@ RLS pozwala każdemu aktywnemu członkowi aktualizować produkt, aby możliwy by
 ## Budget
 
 RLS dopuszcza dane finansowe wyłącznie dla aktywnych ról `owner`, `admin` i `adult`. Child nie może wykonać SELECT ani mutacji tabel budżetowych. Owner/admin zarządza planem i uczestnikami; adult tworzy transakcje, edytuje własne i może zapisać settlement tylko jako jego strona. Tabela snapshotów nie ma grantów mutacji dla klienta.
+
+## Nieruchomości i opłaty
+
+- Moduł jest dostępny wyłącznie aktywnym rolom owner/admin/adult; child nie ma polityk SELECT ani zapisu.
+- Wszystkie obiekty mają `family_id`, a composite FK odrzucają podmianę property, unit, definition, charge lub budget transaction z innej rodziny.
+- Należności, reguły przypomnień, harmonogramy i linki budżetowe nie mają bezpośrednich grantów zapisu. Krytyczne operacje przechodzą przez narrow RPC z kontrolą roli i pustym `search_path`.
+- Odbiorcą przypomnienia jest wyłącznie `auth.uid()` zapisujący definicję. Klient nie może ustawić backendowego `reminder_kind` ani offsetu na dowolnym reminderze.
+- Płatność blokuje wiersz charge przed utworzeniem lub aktualizacją powiązanej transakcji, co chroni przed duplikacją przy retry.

@@ -15,6 +15,7 @@ describe('global mobile header context', () => {
     ['tasks', 'Zadania'],
     ['shopping', 'Zakupy'],
     ['budget', 'Budżet'],
+    ['properties', 'Nieruchomości i opłaty'],
     ['notifications', 'Powiadomienia'],
     ['admin', 'Administracja'],
   ])('maps %s to a single shared subtitle', (context, subtitle) => {

@@ -29,7 +29,7 @@ Serie obowiązków rodzinnych, jedno następne occurrence generowane przez bazę
 Bezpieczne zarządzanie rodziną, przełączanie wielu rodzin, tworzenie kolejnych rodzin oraz odrębny poziom administracji platformy. Migracja 0012 została wdrożona produkcyjnie i przeszła post-migration verification.
 
 ## Sprint 7.6 — Nieruchomości i opłaty
-Model nieruchomości oraz powiązanych opłat. Zakres planowany — nie jest częścią Sprintu 7.
+Nieruchomości i ich części, definicje opłat jednorazowych oraz cyklicznych, należności, tabela roku, historia, przypomnienia i idempotentne powiązanie z Budżetem. Migracja 0013 została wdrożona produkcyjnie i przeszła post-migration verification. Sprint zakończony.
 
 ## Później — Backup Center
 Zakresowy backup, szyfrowanie, historia i selektywne przywracanie.

@@ -68,11 +68,12 @@ function permissionState(status: PermissionStatus): SystemPushPermission {
 
 export function pushRoute(data: Record<string, unknown>): AppView {
   const route = typeof data.route === 'string' ? data.route : null
-  if (route === 'tasks' || route === 'calendar' || route === 'dashboard') return route
+  if (route === 'tasks' || route === 'calendar' || route === 'properties' || route === 'dashboard') return route
   const sourceType = typeof data.source_type === 'string' ? data.source_type : ''
   const notificationType = typeof data.notification_type === 'string' ? data.notification_type : ''
   if (sourceType === 'task' || notificationType === 'task_assigned' || notificationType === 'task_reminder') return 'tasks'
   if (sourceType === 'calendar_event' || notificationType === 'calendar_reminder') return 'calendar'
+  if (sourceType === 'property_charge' || notificationType === 'property_charge_reminder') return 'properties'
   return 'dashboard'
 }
 

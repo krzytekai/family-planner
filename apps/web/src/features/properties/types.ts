@@ -1,0 +1,14 @@
+export type PropertyUnitType='apartment'|'garage'|'parking'|'commercial'|'land'|'other'
+export type ChargeCategory='rent'|'electricity'|'gas'|'water'|'internet'|'tax'|'insurance'|'parking'|'service'|'other'
+export type AmountMode='fixed'|'variable'|'optional'
+export type ChargeRecurrence='one_time'|'monthly'|'interval_months'|'yearly'|'selected_dates'
+export type ChargeStatus='pending'|'paid'|'cancelled'
+export interface Property{id:string;familyId:string;name:string;address:string|null;description:string|null;active:boolean}
+export interface PropertyUnit{id:string;familyId:string;propertyId:string;name:string;type:PropertyUnitType;active:boolean}
+export interface ChargeDefinition{id:string;familyId:string;propertyId:string;unitId:string|null;name:string;category:ChargeCategory;amountMode:AmountMode;plannedAmountCents:number|null;currency:string;recurrence:ChargeRecurrence;timezone:string;startDate:string;dueDay:number|null;intervalMonths:number|null;recurrenceMonth:number|null;active:boolean;autoGenerate:boolean;budgetSyncMode:'manual'|'automatic'}
+export interface PropertyCharge{id:string;familyId:string;propertyId:string;unitId:string|null;definitionId:string;dueDate:string;plannedAmountCents:number|null;actualAmountCents:number|null;currency:string;status:ChargeStatus;paidAt:string|null;notes:string|null;budgetTransactionId:string|null}
+export interface PropertyInput{familyId:string;name:string;address:string;description:string}
+export interface UnitInput{familyId:string;propertyId:string;name:string;type:PropertyUnitType}
+export interface DefinitionInput{familyId:string;propertyId:string;unitId:string|null;name:string;category:ChargeCategory;amountMode:AmountMode;plannedAmountCents:number|null;recurrence:ChargeRecurrence;timezone:string;startDate:string;dueDay:number|null;intervalMonths:number|null;recurrenceMonth:number|null;selectedDates:Array<{month:number;day:number}>;reminderOffsets:number[];autoGenerate:boolean;budgetSyncMode:'manual'|'automatic'}
+export interface PaymentInput{familyId:string;chargeId:string;amountCents:number;paidAt:string;notes:string;syncBudget:boolean}
+export type PropertiesTab='dashboard'|'charges'|'due'|'year'|'history'|'settings'

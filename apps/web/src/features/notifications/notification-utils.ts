@@ -1,6 +1,6 @@
 import type { AppNotification, NotificationPreferences, NotificationType, Reminder } from './types'
 
-export type NotificationDestination = 'dashboard' | 'tasks' | 'calendar'
+export type NotificationDestination = 'dashboard' | 'tasks' | 'calendar' | 'properties'
 
 export function unreadNotificationCount(notifications: AppNotification[]) {
   return notifications.filter((notification) => notification.readAt === null).length
@@ -9,6 +9,7 @@ export function unreadNotificationCount(notifications: AppNotification[]) {
 export function notificationDestination(notification: Pick<AppNotification, 'sourceType'>): NotificationDestination {
   if (notification.sourceType === 'task') return 'tasks'
   if (notification.sourceType === 'calendar_event') return 'calendar'
+  if (notification.sourceType === 'property_charge') return 'properties'
   return 'dashboard'
 }
 

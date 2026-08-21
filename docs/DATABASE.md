@@ -17,6 +17,7 @@ Migracje są wykonywane kolejno i ręcznie zatwierdzane przed uruchomieniem na �
 11. `0010_push_dispatcher_cron.sql`
 12. `0011_recurring_tasks.sql` (zastosowana ręcznie na produkcyjnym Supabase)
 13. `0012_family_platform_administration.sql` (wdrożona produkcyjnie; post-migration verification: PASS)
+14. `0013_properties_and_charges.sql` (wdrożona produkcyjnie; post-migration verification: PASS)
 
 Codex przygotowuje pliki migracji, ale nie uruchamia ich samodzielnie na produkcyjnym projekcie Supabase.
 
@@ -51,6 +52,16 @@ Logiczny `assignee_reminder_offset_minutes` należy do zadania. `reminder_kind` 
 ### Administracja rodzin i platformy (0012)
 
 Krytyczne mutacje `family_members` przechodzą przez `manage_family_member`, a constraint trigger wymusza co najmniej jednego aktywnego ownera. Usunięcie membership nie usuwa konta Auth. `create_additional_family` tworzy nowy tenant i ownera w jednej transakcji. `platform_admins` jest niezależne od `family_role`, nie ma zapisów klienckich ani automatycznego bootstrapu.
+
+### Nieruchomości i opłaty (0013)
+
+`properties` i `property_units` opisują lokalizacje oraz ich dowolnie nazwane części. `property_charge_definitions` przechowuje regułę, a `property_charges` konkretne należności i historię. Kwoty używają `numeric(12,2)`, zgodnie z Budżetem. Composite FK wiążą property, unit, definition i charge z jednym `family_id`.
+
+`ensure_property_charges` generuje tylko wskazany zakres do 400 dni. Unikalność `(charge_definition_id,due_date)` oraz `ON CONFLICT DO NOTHING` zapewniają idempotencję. Status overdue pozostaje wartością wyliczaną jako `pending` z datą wcześniejszą od bieżącej.
+
+Osobiste reguły przypomnień definicji materializują się w istniejącym pipeline `reminders → notifications → push deliveries`. `property_charge` jest osobnym source/kind, dzięki czemu kilka offsetów nie koliduje z reminderami task/calendar. Płatność anuluje wyłącznie pending reminders danej należności.
+
+`pay_property_charge` blokuje occurrence, opcjonalnie tworzy dokładnie jedną transakcję budżetową i przechowuje link. Ponowne wywołanie aktualizuje istniejącą transakcję, więc kwota oraz data nie rozchodzą się.
 
 ## Integralność zapisu
 
@@ -88,7 +99,7 @@ Pola `purchased_by` i `purchased_at` są zarządzane przez `private.prepare_shop
 
 ## Notifications and reminders
 
-`public.notifications` jest trwałą skrzynką odbiorczą użytkownika, a `public.reminders` przechowuje osobiste, oczekujące przypomnienia do zadań i wydarzeń. `notification_devices` stanowi bezpieczny rejestr tokenów FCM/Web Push na przyszłość, natomiast `notification_preferences` przechowuje ustawienia per użytkownik i rodzina.
+`public.notifications` jest trwałą skrzynką odbiorczą użytkownika, a `public.reminders` przechowuje osobiste, oczekujące przypomnienia do zadań, wydarzeń i opłat nieruchomości. `notification_devices` stanowi bezpieczny rejestr tokenów FCM/Web Push, natomiast `notification_preferences` przechowuje ustawienia per użytkownik i rodzina.
 
 Powiadomienie o przypisaniu zadania tworzy trigger bazy. Preferencja typu zdarzenia decyduje o utworzeniu kanonicznego `notification`; kanały `in_app_enabled` i `push_enabled` są rozdzielone. Terminy obsługuje wyłącznie `private.process_due_reminders(batch_size)`: funkcja wybiera rekordy `pending` z `FOR UPDATE SKIP LOCKED`, ponownie sprawdza aktywne członkostwo, deduplikuje wpis skrzynki i kończy przypomnienie jako `fired` albo `cancelled`. Funkcji nie udostępniono rolom `anon` ani `authenticated`; scheduler musi wywoływać ją w zaufanym kontekście bazy, np. co minutę przez Supabase Cron/pg_cron. Frontend nie używa timerów do dostarczania przypomnień.
 

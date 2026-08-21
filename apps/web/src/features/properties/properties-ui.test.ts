@@ -1,0 +1,11 @@
+import{readFileSync}from'node:fs';import{resolve}from'node:path';import{describe,expect,it}from'vitest';const read=(p:string)=>readFileSync(resolve(process.cwd(),p),'utf8');const view=read('src/features/properties/components/PropertiesView.tsx');const definition=read('src/features/properties/components/ChargeDefinitionModal.tsx');const pay=read('src/features/properties/components/PayChargeModal.tsx');const app=read('src/app/App.tsx');const mobile=read('src/components/MobileNav.tsx')
+describe('properties module UI contract',()=>{
+ it('contains dashboard charges due year history and settings views',()=>{for(const label of ['Pulpit','Opłaty','Do zapłaty','Tabela roku','Historia','Ustawienia'])expect(view).toContain(label)})
+ it('supports property and unit creation',()=>{expect(view).toContain("setModal('property')");expect(view).toContain("setModal('unit')")})
+ it('supports fixed variable and optional amounts plus all recurrence modes',()=>{for(const value of ['fixed','variable','optional','one_time','monthly','interval_months','yearly','selected_dates'])expect(definition).toContain(value)})
+ it('offers personal reminder presets and budget auto sync',()=>{for(const label of ['7 dni przed','2 dni przed','w dniu','dzień po','Automatycznie dodawaj'])expect(definition).toContain(label)})
+ it('provides quick payment amount date notes and optional budget sync',()=>{for(const label of ['Kwota','Data płatności','Notatka','Dodaj do Budżetu'])expect(pay).toContain(label)})
+ it('renders a horizontally scrollable annual table',()=>{expect(view).toContain('overflow-x-auto');expect(view).toContain('sticky left-0')})
+ it('keeps child out through route and menu guards',()=>{expect(app).toContain("activeView === 'properties' && canProperties");expect(mobile).toContain('canProperties?')})
+ it('remounts and reloads data when the active family changes',()=>expect(app).toContain('<PropertiesView key={family.familyId} family={family}/>'))
+})

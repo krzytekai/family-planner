@@ -118,6 +118,11 @@ describe('native push controller', () => {
     expect(parseNativePushAction({ notification_id: 'n1', family_id: 'f1', source_type: 'task', notification_type: 'task_reminder' })?.route).toBe('tasks')
   })
 
+  it('routes property charge reminders to properties', () => {
+    expect(pushRoute({ source_type: 'property_charge' })).toBe('properties')
+    expect(pushRoute({ notification_type: 'property_charge_reminder' })).toBe('properties')
+  })
+
   it('persists a cold-start action until an authenticated session binds', async () => {
     const test = harness()
     const onAction = vi.fn()

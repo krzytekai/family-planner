@@ -1,1 +1,1 @@
-export type AppView = 'dashboard' | 'calendar' | 'tasks' | 'shopping' | 'budget'
+export type AppView = 'dashboard' | 'calendar' | 'tasks' | 'shopping' | 'budget' | 'properties'

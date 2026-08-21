@@ -35,6 +35,8 @@ import { canViewBudget } from '../features/budget/budget-utils'
 import { NATIVE_BACK_EVENT, useNativeBackButton } from './native-platform'
 import { getHeaderSubtitle, type HeaderContext } from './header-context'
 import { getSupabaseClient } from '../lib/supabase'
+import { PropertiesView } from '../features/properties/components/PropertiesView'
+import { canAccessProperties } from '../features/properties/property-utils'
 
 function Planner({ session }: { session: Session }) {
   const { family, families, selectFamily, isPlatformAdmin, loading, error } = useFamilyContext(session.user.id)
@@ -66,11 +68,12 @@ function FamilyPlanner({ family, families, onFamilyChange, isPlatformAdmin, canA
   const viewHistory = useRef<AppView[]>(['dashboard'])
   const canCreateTasks = family.role === 'owner' || family.role === 'admin' || family.role === 'adult'
   const canBudget = canViewBudget(family.role)
+  const canProperties = canAccessProperties(family.role)
   const headerContext: HeaderContext = adminOpen ? 'admin' : notificationCenterOpen ? 'notifications' : activeView
   const headerSubtitle = getHeaderSubtitle(headerContext, displayName)
 
   function showView(view: AppView) { setActiveView(view); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  function navigate(view: AppView) { if ((view === 'budget' && !canBudget) || view === activeView) return; viewHistory.current.push(view); showView(view) }
+  function navigate(view: AppView) { if ((view === 'budget' && !canBudget) || (view === 'properties' && !canProperties) || view === activeView) return; viewHistory.current.push(view); showView(view) }
   function openQuickTask() { if (canCreateTasks) setQuickTaskOpen(true) }
   function openContextualQuickAdd() { if (activeView === 'calendar') setCalendarCreateRequest((value) => value + 1); else if (activeView === 'shopping') setShoppingCreateRequest((value) => value + 1); else if (activeView === 'budget' && canBudget) setBudgetCreateRequest((value) => value + 1); else openQuickTask() }
   function remindTask(task: Task) { setReminderSource({ type: 'task', id: task.id, title: task.title, occursAt: task.dueAt }) }
@@ -127,8 +130,8 @@ function FamilyPlanner({ family, families, onFamilyChange, isPlatformAdmin, canA
   })
 
   return <div className="app-mobile-density min-h-screen bg-brand-bg text-brand-text">
-    <Sidebar family={family} families={families} onFamilyChange={onFamilyChange} canAdmin={canAdmin} canCreateFamily={canCreateAdditionalFamily(family.role)} isPlatformAdmin={isPlatformAdmin} canBudget={canBudget} activeView={activeView} onNavigate={navigate} onAdmin={() => setAdminOpen(true)} onCreateFamily={()=>setCreateFamilyOpen(true)} onPlatformAdmin={()=>setPlatformAdminOpen(true)}/>
-    <MobileNav activeView={activeView} canBudget={canBudget} canQuickAdd={activeView === 'shopping' || activeView === 'budget' || canCreateTasks} canAdmin={canAdmin} isPlatformAdmin={isPlatformAdmin} canCreateFamily={canCreateAdditionalFamily(family.role)} onNavigate={navigate} onQuickAdd={openContextualQuickAdd} onAdmin={()=>setAdminOpen(true)} onCreateFamily={()=>setCreateFamilyOpen(true)} onPlatformAdmin={()=>setPlatformAdminOpen(true)}/>
+    <Sidebar family={family} families={families} onFamilyChange={onFamilyChange} canAdmin={canAdmin} canCreateFamily={canCreateAdditionalFamily(family.role)} isPlatformAdmin={isPlatformAdmin} canBudget={canBudget} canProperties={canProperties} activeView={activeView} onNavigate={navigate} onAdmin={() => setAdminOpen(true)} onCreateFamily={()=>setCreateFamilyOpen(true)} onPlatformAdmin={()=>setPlatformAdminOpen(true)}/>
+    <MobileNav activeView={activeView} canBudget={canBudget} canProperties={canProperties} canQuickAdd={activeView === 'shopping' || activeView === 'budget' || canCreateTasks} canAdmin={canAdmin} isPlatformAdmin={isPlatformAdmin} canCreateFamily={canCreateAdditionalFamily(family.role)} onNavigate={navigate} onQuickAdd={openContextualQuickAdd} onAdmin={()=>setAdminOpen(true)} onCreateFamily={()=>setCreateFamilyOpen(true)} onPlatformAdmin={()=>setPlatformAdminOpen(true)}/>
     <main className="mobile-nav-safe-content lg:ml-64 lg:pb-8">
       <AppHeader family={family} families={families} onFamilyChange={onFamilyChange} subtitle={headerSubtitle} displayName={displayName} unreadCount={notificationState.unreadCount} onOpenNotifications={() => { setNotificationCenterOpen(true); void notificationState.refresh() }} onLogout={() => void logout()}/>
       {activeView === 'dashboard' ? <DashboardView family={family} displayName={displayName} todayTasks={taskState.todayTasks} stats={taskState.stats} loading={taskState.loading} error={taskState.error} actionError={taskState.actionError} updatingIds={taskState.updatingIds} canCreateTasks={canCreateTasks} onQuickAdd={openQuickTask} onViewTasks={() => navigate('tasks')} onViewCalendar={() => navigate('calendar')} onViewShopping={() => navigate('shopping')} onToggle={(task) => void taskState.toggleCompleted(task)} onDelete={setTaskToDelete} unreadNotifications={notificationState.unreadCount} onOpenNotifications={() => setNotificationCenterOpen(true)} canBudget={canBudget} onViewBudget={() => navigate('budget')}/> : null}
@@ -136,6 +139,7 @@ function FamilyPlanner({ family, families, onFamilyChange, isPlatformAdmin, canA
       {activeView === 'tasks' ? <TasksView family={family} tasks={taskState.tasks} loading={taskState.loading} error={taskState.error} actionError={taskState.actionError} updatingIds={taskState.updatingIds} canCreate={canCreateTasks} onQuickAdd={openQuickTask} onToggle={(task) => void taskState.toggleCompleted(task)} onDelete={setTaskToDelete} reminders={reminderState.reminders} onReminder={remindTask} onEdit={setTaskToEdit} onStopRecurrence={(task)=>{if(window.confirm(`Zakończyć serię „${task.title}”? Historia zadań zostanie zachowana.`))void taskState.stopRecurrence(task)}}/> : null}
       {activeView === 'shopping' ? <ShoppingView family={family} quickAddRequest={shoppingCreateRequest}/> : null}
       {activeView === 'budget' && canBudget ? <BudgetView family={family} quickAddRequest={budgetCreateRequest}/> : null}
+      {activeView === 'properties' && canProperties ? <PropertiesView key={family.familyId} family={family}/> : null}
     </main>
     {adminOpen && canAdmin ? <AdminPanel family={family} onClose={() => setAdminOpen(false)} onFamilyChanged={()=>window.location.reload()}/> : null}
     {platformAdminOpen&&isPlatformAdmin?<PlatformAdminPanel onClose={()=>setPlatformAdminOpen(false)}/>:null}

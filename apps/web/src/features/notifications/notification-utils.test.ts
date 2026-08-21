@@ -9,6 +9,7 @@ describe('notification utilities', () => {
   it('counts only unread notifications', () => expect(unreadNotificationCount([notification(), notification({ id: 'n2', readAt: '2026-08-18T09:00:00Z' })])).toBe(1))
   it('routes task notifications to tasks', () => expect(notificationDestination(notification({ sourceType: 'task' }))).toBe('tasks'))
   it('routes calendar notifications to calendar', () => expect(notificationDestination(notification({ sourceType: 'calendar_event' }))).toBe('calendar'))
+  it('routes property charge notifications to properties', () => expect(notificationDestination(notification({ sourceType: 'property_charge' }))).toBe('properties'))
   it('falls back to dashboard for system notifications', () => expect(notificationDestination(notification())).toBe('dashboard'))
   it('groups unread, read today and earlier notifications', () => {
     const groups = groupNotifications([notification(), notification({ id: 'n2', readAt: 'x' }), notification({ id: 'n3', readAt: 'x', createdAt: '2026-08-17T08:00:00Z' })], new Date('2026-08-18T12:00:00Z'))
