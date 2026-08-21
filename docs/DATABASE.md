@@ -16,6 +16,7 @@ Migracje są wykonywane kolejno i ręcznie zatwierdzane przed uruchomieniem na �
 10. `0009_fcm_push_delivery.sql`
 11. `0010_push_dispatcher_cron.sql`
 12. `0011_recurring_tasks.sql` (zastosowana ręcznie na produkcyjnym Supabase)
+13. `0012_family_platform_administration.sql` (wdrożona produkcyjnie; post-migration verification: PASS)
 
 Codex przygotowuje pliki migracji, ale nie uruchamia ich samodzielnie na produkcyjnym projekcie Supabase.
 
@@ -46,6 +47,10 @@ Trigger po przejściu `status != done → done` blokuje serię i tworzy co najwy
 Logiczny `assignee_reminder_offset_minutes` należy do zadania. `reminder_kind` rozróżnia stare i nowe przypomnienia osobiste (`personal`, wartość domyślna) od backendowych przypomnień obowiązku (`task_assignee`). Dzięki temu oba rodzaje mogą istnieć dla jednego użytkownika i taska bez konfliktu unikalności. Konkretne rekordy `task_assignee` są tworzone przez kontrolowane RPC dla `assigned_to`, nigdy dla odbiorcy wskazanego dowolnie przez klienta. Następne occurrence dziedziczy offset i otrzymuje nowy rekord `pending` wyliczony od nowego `due_at`.
 
 `recurrence_until` nie jest częścią 0011. Zakończenie serii odbywa się jawnie przez `recurrence_enabled=false` i `stopped_at`; ograniczenie datą zostanie dodane dopiero razem z pełnym RPC oraz UX.
+
+### Administracja rodzin i platformy (0012)
+
+Krytyczne mutacje `family_members` przechodzą przez `manage_family_member`, a constraint trigger wymusza co najmniej jednego aktywnego ownera. Usunięcie membership nie usuwa konta Auth. `create_additional_family` tworzy nowy tenant i ownera w jednej transakcji. `platform_admins` jest niezależne od `family_role`, nie ma zapisów klienckich ani automatycznego bootstrapu.
 
 ## Integralność zapisu
 

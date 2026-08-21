@@ -23,7 +23,7 @@ async function authorize(request: Request, familyId: string) {
   const admin = createClient(url, secretKey, { auth: { persistSession: false, autoRefreshToken: false } })
   const { data: membership } = await admin.from('family_members').select('role,status').eq('family_id', familyId).eq('user_id', userData.user.id).maybeSingle()
   if (!membership || membership.status !== 'active' || !['owner','admin'].includes(membership.role)) return { error: json({ error: 'Brak uprawnień administratora.' }, 403) }
-  return { admin, actor: userData.user }
+  return { admin, actor: userData.user, actorRole: membership.role as 'owner' | 'admin' }
 }
 
 async function handler(request: Request) {
@@ -47,6 +47,7 @@ async function handler(request: Request) {
       if (String(password).length < 8) return json({ error: 'Hasło musi mieć co najmniej 8 znaków.' }, 400)
       const auth = await authorize(request, familyId)
       if ('error' in auth) return auth.error
+      if (auth.actorRole === 'admin' && role === 'admin') return json({ error: 'Administrator może dodawać tylko dorosłych i dzieci.' }, 403)
       const { data: created, error: createError } = await auth.admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { display_name: displayName } })
       if (createError || !created.user) return json({ error: createError?.message ?? 'Nie udało się utworzyć konta.' }, 400)
       const userId = created.user.id
@@ -56,7 +57,7 @@ async function handler(request: Request) {
         await auth.admin.auth.admin.deleteUser(userId)
         return json({ error: profileError?.message ?? memberError?.message }, 400)
       }
-      await auth.admin.from('audit_logs').insert({ family_id: familyId, actor_user_id: auth.actor.id, action: 'user.created', entity_type: 'user', entity_id: userId, metadata: { role } })
+      await auth.admin.from('audit_logs').insert({ family_id: familyId, actor_user_id: auth.actor.id, action: 'family.member.created', entity_type: 'family_member', entity_id: userId, metadata: { role } })
       return json({ ok: true, userId }, 201)
     }
 

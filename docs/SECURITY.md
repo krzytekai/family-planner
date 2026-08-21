@@ -50,6 +50,14 @@ RLS pozwala każdemu aktywnemu członkowi aktualizować produkt, aby możliwy by
 - Tokeny urządzeń są widoczne i modyfikowalne tylko przez ich właściciela. Service role ani klucze FCM nie trafiają do przeglądarki.
 - Funkcje generujące skrzynkę i audyt działają jako `SECURITY DEFINER`, mają pusty `search_path`, jawnie kwalifikowane obiekty i brak `EXECUTE` dla ról publicznych.
 
+## Administracja rodzin i platformy
+
+- Owner zarządza admin/adult/child; admin wyłącznie adult/child. Adult i child nie mają family-admin RPC.
+- Trigger bazy blokuje rodzinę bez aktywnego ownera. Transfer ownership nie jest częścią 0012.
+- Wybrany `family_id` w localStorage jest tylko preferencją UX; każdy odczyt i zapis nadal podlega membership oraz RLS.
+- `platform_admins` nie jest rolą rodzinną. Tabela nie ma grantów dla klienta, a pierwszy superadmin jest nadawany ręcznie przez operatora po UUID profilu.
+- Usunięcie członka kasuje tylko membership. Globalne usuwanie/blokowanie Auth pozostaje poza tym sprintem.
+
 ## Budget
 
 RLS dopuszcza dane finansowe wyłącznie dla aktywnych ról `owner`, `admin` i `adult`. Child nie może wykonać SELECT ani mutacji tabel budżetowych. Owner/admin zarządza planem i uczestnikami; adult tworzy transakcje, edytuje własne i może zapisać settlement tylko jako jego strona. Tabela snapshotów nie ma grantów mutacji dla klienta.

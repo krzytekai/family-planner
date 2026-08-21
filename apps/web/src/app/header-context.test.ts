@@ -23,11 +23,13 @@ describe('global mobile header context', () => {
 
   it('keeps the compact header sticky, overflow-safe and native-safe', () => {
     const header = rootFile('apps/web/src/components/AppHeader.tsx')
+    const switcher = rootFile('apps/web/src/features/family/components/FamilySwitcher.tsx')
     const css = rootFile('apps/web/src/styles/index.css')
 
     expect(header).toContain('sticky top-0 z-30')
     expect(header).toContain('min-w-0 flex-1')
-    expect(header).toContain('truncate text-[11.5px]')
+    expect(switcher).toContain("compact?'text-[11.5px]")
+    expect(switcher).toContain('appearance-none truncate')
     expect(header).toContain('truncate text-[13.5px]')
     expect(header).toContain('shrink-0')
     expect(css).toContain('@media (max-width: 767px)')

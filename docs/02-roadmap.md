@@ -26,7 +26,7 @@ Konfigurowalne widżety, aktywność rodziny i personalizacja skrótów.
 Serie obowiązków rodzinnych, jedno następne occurrence generowane przez bazę, przypomnienia dla assignee, historia, idempotencja i obsługa lokalnej strefy czasu.
 
 ## Sprint 7.5 — Administracja
-Pełna administracja rodziną i aplikacją. Zakres planowany — nie jest częścią Sprintu 7.
+Bezpieczne zarządzanie rodziną, przełączanie wielu rodzin, tworzenie kolejnych rodzin oraz odrębny poziom administracji platformy. Migracja 0012 została wdrożona produkcyjnie i przeszła post-migration verification.
 
 ## Sprint 7.6 — Nieruchomości i opłaty
 Model nieruchomości oraz powiązanych opłat. Zakres planowany — nie jest częścią Sprintu 7.
