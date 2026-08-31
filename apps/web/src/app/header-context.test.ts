@@ -29,7 +29,9 @@ describe('global mobile header context', () => {
 
     expect(header).toContain('sticky top-0 z-30')
     expect(header).toContain('min-w-0 flex-1')
-    expect(switcher).toContain("compact?'text-[11.5px]")
+    expect(switcher).toContain("compactBranding='text-[11.5px] font-medium uppercase leading-[1.2] tracking-[.17em] text-[#FFD84D]'")
+    expect(switcher).toContain('block truncate ${compact?compactBranding')
+    expect(switcher).toContain("compact?compactBranding:'text-xs text-brand-muted'")
     expect(switcher).toContain('appearance-none truncate')
     expect(header).toContain('truncate text-[13.5px]')
     expect(header).toContain('shrink-0')
