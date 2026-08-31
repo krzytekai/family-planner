@@ -13,6 +13,7 @@ export interface AppNotification {
   sourceType: NotificationSourceType
   sourceId: string | null
   readAt: string | null
+  dismissedAt: string | null
   createdAt: string
 }
 

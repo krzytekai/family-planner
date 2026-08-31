@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { groupNotifications, isNotificationTypeEnabled, isReminderDue, notificationDestination, reminderForSource, reminderProcessingDecision, shouldNotifyAssignment, unreadNotificationCount } from './notification-utils'
+import { groupNotifications, isNotificationTypeEnabled, isReminderDue, notificationDestination, reminderForSource, reminderProcessingDecision, shouldNotifyAssignment, unreadNotificationCount, visibleNotifications } from './notification-utils'
 import { defaultNotificationPreferences, type AppNotification, type Reminder } from './types'
 
-const notification = (overrides: Partial<AppNotification> = {}): AppNotification => ({ id: 'n1', familyId: 'f1', recipientUserId: 'u1', type: 'system', title: 'T', body: null, sourceType: null, sourceId: null, readAt: null, createdAt: '2026-08-18T08:00:00Z', ...overrides })
+const notification = (overrides: Partial<AppNotification> = {}): AppNotification => ({ id: 'n1', familyId: 'f1', recipientUserId: 'u1', type: 'system', title: 'T', body: null, sourceType: null, sourceId: null, readAt: null, dismissedAt: null, createdAt: '2026-08-18T08:00:00Z', ...overrides })
 const reminder = (overrides: Partial<Reminder> = {}): Reminder => ({ id: 'r1', familyId: 'f1', sourceType: 'task', sourceId: 't1', title: null, remindAt: '2026-08-18T08:00:00Z', timezone: 'Europe/Warsaw', status: 'pending', kind: 'personal', assigneeReminderOffsetMinutes: null, ...overrides })
 
 describe('notification utilities', () => {
   it('counts only unread notifications', () => expect(unreadNotificationCount([notification(), notification({ id: 'n2', readAt: '2026-08-18T09:00:00Z' })])).toBe(1))
+  it('does not count a dismissed unread notification in the badge', () => expect(unreadNotificationCount([notification({ dismissedAt: '2026-08-18T09:00:00Z' })])).toBe(0))
+  it('keeps read and unread visible until dismissed', () => expect(visibleNotifications([notification(),notification({id:'n2',readAt:'x'}),notification({id:'n3',dismissedAt:'x'})]).map(item=>item.id)).toEqual(['n1','n2']))
+  it('does not return dismissed notifications after a list refresh', () => expect(groupNotifications([notification({dismissedAt:'x'})]).new).toHaveLength(0))
   it('routes task notifications to tasks', () => expect(notificationDestination(notification({ sourceType: 'task' }))).toBe('tasks'))
   it('routes calendar notifications to calendar', () => expect(notificationDestination(notification({ sourceType: 'calendar_event' }))).toBe('calendar'))
   it('routes property charge notifications to properties', () => expect(notificationDestination(notification({ sourceType: 'property_charge' }))).toBe('properties'))

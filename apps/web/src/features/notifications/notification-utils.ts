@@ -3,7 +3,11 @@ import type { AppNotification, NotificationPreferences, NotificationType, Remind
 export type NotificationDestination = 'dashboard' | 'tasks' | 'calendar' | 'properties'
 
 export function unreadNotificationCount(notifications: AppNotification[]) {
-  return notifications.filter((notification) => notification.readAt === null).length
+  return notifications.filter((notification) => notification.dismissedAt === null && notification.readAt === null).length
+}
+
+export function visibleNotifications(notifications: AppNotification[]) {
+  return notifications.filter((notification) => notification.dismissedAt === null)
 }
 
 export function notificationDestination(notification: Pick<AppNotification, 'sourceType'>): NotificationDestination {
@@ -15,10 +19,11 @@ export function notificationDestination(notification: Pick<AppNotification, 'sou
 
 export function groupNotifications(notifications: AppNotification[], now = new Date()) {
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+  const visible = visibleNotifications(notifications)
   return {
-    new: notifications.filter((item) => item.readAt === null),
-    today: notifications.filter((item) => item.readAt !== null && new Date(item.createdAt).getTime() >= startOfToday),
-    earlier: notifications.filter((item) => new Date(item.createdAt).getTime() < startOfToday),
+    new: visible.filter((item) => item.readAt === null),
+    today: visible.filter((item) => item.readAt !== null && new Date(item.createdAt).getTime() >= startOfToday),
+    earlier: visible.filter((item) => item.readAt !== null && new Date(item.createdAt).getTime() < startOfToday),
   }
 }
 
