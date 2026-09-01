@@ -61,9 +61,26 @@ async function handler(request: Request) {
       return json({ ok: true, userId }, 201)
     }
 
+    if (request.method === 'PATCH') {
+      const body = await request.json()
+      const { familyId, userId, password } = body ?? {}
+      if (!familyId || !userId || typeof password !== 'string' || password.length < 8) return json({ error: 'Nieprawidłowe dane zmiany hasła.' }, 400)
+      const auth = await authorize(request, familyId)
+      if ('error' in auth) return auth.error
+      if (userId === auth.actor.id) return json({ error: 'Własne hasło zmień w sekcji Moje konto.' }, 400)
+      const { data: target } = await auth.admin.from('family_members').select('role,status').eq('family_id', familyId).eq('user_id', userId).maybeSingle()
+      if (!target || target.status !== 'active') return json({ error: 'Nie znaleziono aktywnego członka tej rodziny.' }, 404)
+      const allowed = auth.actorRole === 'owner' ? ['admin','adult','child'].includes(target.role) : ['adult','child'].includes(target.role)
+      if (!allowed) return json({ error: 'Brak uprawnień do zmiany hasła tego członka.' }, 403)
+      const { error: updateError } = await auth.admin.auth.admin.updateUserById(userId, { password })
+      if (updateError) return json({ error: 'Nie udało się zmienić hasła.' }, 400)
+      await auth.admin.from('audit_logs').insert({ family_id: familyId, actor_user_id: auth.actor.id, action: 'family.member.password_changed', entity_type: 'family_member', entity_id: userId, metadata: { target_role: target.role } })
+      return json({ ok: true })
+    }
+
     return json({ error: 'Metoda niedozwolona.' }, 405)
-  } catch (error) {
-    console.error(error)
+  } catch {
+    console.error('Admin users endpoint failed')
     return json({ error: 'Błąd serwera.' }, 500)
   }
 }

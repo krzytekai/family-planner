@@ -6,6 +6,7 @@ import { Sidebar } from '../components/Sidebar'
 import { AdminPanel } from '../features/admin/AdminPanel'
 import { PlatformAdminPanel } from '../features/admin/PlatformAdminPanel'
 import { AuthGate } from '../features/auth/AuthGate'
+import { AccountModal } from '../features/auth/AccountModal'
 import { CalendarView } from '../features/calendar/components/CalendarView'
 import type { CalendarEvent } from '../features/calendar/types'
 import { DashboardView } from '../features/dashboard/DashboardView'
@@ -65,6 +66,7 @@ function FamilyPlanner({ family, families, onFamilyChange, isPlatformAdmin, canA
   const [reminderSource, setReminderSource] = useState<ReminderSource | null>(null)
   const [platformAdminOpen,setPlatformAdminOpen]=useState(false)
   const [createFamilyOpen,setCreateFamilyOpen]=useState(false)
+  const [accountOpen,setAccountOpen]=useState(false)
   const viewHistory = useRef<AppView[]>(['dashboard'])
   const canCreateTasks = family.role === 'owner' || family.role === 'admin' || family.role === 'adult'
   const canBudget = canViewBudget(family.role)
@@ -117,6 +119,7 @@ function FamilyPlanner({ family, families, onFamilyChange, isPlatformAdmin, canA
     if (adminOpen) { setAdminOpen(false); return }
     if (platformAdminOpen) { setPlatformAdminOpen(false); return }
     if (createFamilyOpen) { setCreateFamilyOpen(false); return }
+    if (accountOpen) { setAccountOpen(false); return }
 
     const overlayBack = new Event(NATIVE_BACK_EVENT, { cancelable: true })
     window.dispatchEvent(overlayBack)
@@ -132,7 +135,7 @@ function FamilyPlanner({ family, families, onFamilyChange, isPlatformAdmin, canA
     <Sidebar family={family} families={families} onFamilyChange={onFamilyChange} canAdmin={canAdmin} canCreateFamily={canCreateAdditionalFamily(family.role)} isPlatformAdmin={isPlatformAdmin} canBudget={canBudget} canProperties={canProperties} activeView={activeView} onNavigate={navigate} onAdmin={() => setAdminOpen(true)} onPlatformAdmin={()=>setPlatformAdminOpen(true)}/>
     <MobileNav activeView={activeView} canBudget={canBudget} canProperties={canProperties} canAdmin={canAdmin} isPlatformAdmin={isPlatformAdmin} canCreateFamily={canCreateAdditionalFamily(family.role)} onNavigate={navigate} onAdmin={()=>setAdminOpen(true)} onPlatformAdmin={()=>setPlatformAdminOpen(true)}/>
     <main className="mobile-nav-safe-content lg:ml-64 lg:pb-8">
-      <AppHeader family={family} families={families} onFamilyChange={onFamilyChange} subtitle={headerSubtitle} displayName={displayName} unreadCount={notificationState.unreadCount} onOpenNotifications={() => { setNotificationCenterOpen(true); void notificationState.refresh() }} onLogout={() => void logout()}/>
+      <AppHeader family={family} families={families} onFamilyChange={onFamilyChange} subtitle={headerSubtitle} displayName={displayName} unreadCount={notificationState.unreadCount} onOpenNotifications={() => { setNotificationCenterOpen(true); void notificationState.refresh() }} onOpenAccount={()=>setAccountOpen(true)} onLogout={() => void logout()}/>
       {activeView === 'dashboard' ? <DashboardView family={family} displayName={displayName} todayTasks={taskState.todayTasks} stats={taskState.stats} loading={taskState.loading} error={taskState.error} actionError={taskState.actionError} updatingIds={taskState.updatingIds} canCreateTasks={canCreateTasks} onQuickAdd={openQuickTask} onViewTasks={() => navigate('tasks')} onViewCalendar={() => navigate('calendar')} onViewShopping={() => navigate('shopping')} onToggle={(task) => void taskState.toggleCompleted(task)} onDelete={setTaskToDelete} unreadNotifications={notificationState.unreadCount} onOpenNotifications={() => setNotificationCenterOpen(true)} canBudget={canBudget} onViewBudget={() => navigate('budget')}/> : null}
       {activeView === 'calendar' ? <CalendarView family={family} createRequest={calendarCreateRequest} reminders={reminderState.reminders} onViewTask={() => navigate('tasks')} onReminder={remindEvent}/> : null}
       {activeView === 'tasks' ? <TasksView family={family} tasks={taskState.tasks} loading={taskState.loading} error={taskState.error} actionError={taskState.actionError} updatingIds={taskState.updatingIds} canCreate={canCreateTasks} onQuickAdd={openQuickTask} onToggle={(task) => void taskState.toggleCompleted(task)} onDelete={setTaskToDelete} reminders={reminderState.reminders} onReminder={remindTask} onEdit={setTaskToEdit} onStopRecurrence={(task)=>{if(window.confirm(`Zakończyć serię „${task.title}”? Historia zadań zostanie zachowana.`))void taskState.stopRecurrence(task)}}/> : null}
@@ -143,6 +146,7 @@ function FamilyPlanner({ family, families, onFamilyChange, isPlatformAdmin, canA
     {adminOpen && (canAdmin||canCreateAdditionalFamily(family.role)) ? <AdminPanel family={family} canCreateFamily={canCreateAdditionalFamily(family.role)} onCreateFamily={()=>{setAdminOpen(false);setCreateFamilyOpen(true)}} onClose={() => setAdminOpen(false)} onFamilyChanged={()=>window.location.reload()}/> : null}
     {platformAdminOpen&&isPlatformAdmin?<PlatformAdminPanel onClose={()=>setPlatformAdminOpen(false)}/>:null}
     {createFamilyOpen&&canCreateAdditionalFamily(family.role)?<CreateFamilyModal displayName={displayName} onClose={()=>setCreateFamilyOpen(false)} onCreated={id=>{localStorage.setItem(activeFamilyStorageKey(family.userId),id);window.location.reload()}}/>:null}
+    {accountOpen?<AccountModal onClose={()=>setAccountOpen(false)}/>:null}
     {quickTaskOpen ? <QuickTaskModal familyId={family.familyId} members={taskState.members} saving={taskState.saving} onCreate={taskState.createTask} onClose={() => setQuickTaskOpen(false)}/> : null}
     {taskToEdit ? <QuickTaskModal familyId={family.familyId} members={taskState.members} saving={taskState.saving} task={taskToEdit} reminder={reminderForSource(reminderState.reminders,'task',taskToEdit.id)} canManageRecurrence={canManageTaskAutomation(taskToEdit,family.userId,family.role)} onCreate={taskState.createTask} onUpdate={taskState.updateTask} onClose={()=>setTaskToEdit(null)}/> : null}
     {taskToDelete ? <DeleteTaskModal task={taskToDelete} deleting={taskState.deletingIds.has(taskToDelete.id)} onDelete={taskState.deleteTask} onClose={() => setTaskToDelete(null)}/> : null}

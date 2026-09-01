@@ -1,0 +1,2 @@
+import{describe,expect,it}from'vitest';import{validatePasswordChange}from'./password-utils'
+describe('password change validation',()=>{it('requires eight characters',()=>expect(validatePasswordChange('short','short')).toContain('8'));it('requires matching confirmation',()=>expect(validatePasswordChange('long-password','different-password')).toBe('Hasła nie są takie same.'));it('accepts a matching strong-enough password',()=>expect(validatePasswordChange('long-password','long-password')).toBeNull())})
