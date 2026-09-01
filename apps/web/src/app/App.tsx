@@ -144,7 +144,7 @@ function FamilyPlanner({ family, families, onFamilyChange, isPlatformAdmin, canA
       {activeView === 'properties' && canProperties ? <PropertiesView key={family.familyId} family={family}/> : null}
     </main>
     {adminOpen && (canAdmin||canCreateAdditionalFamily(family.role)) ? <AdminPanel family={family} canCreateFamily={canCreateAdditionalFamily(family.role)} onCreateFamily={()=>{setAdminOpen(false);setCreateFamilyOpen(true)}} onClose={() => setAdminOpen(false)} onFamilyChanged={()=>window.location.reload()}/> : null}
-    {platformAdminOpen&&isPlatformAdmin?<PlatformAdminPanel onClose={()=>setPlatformAdminOpen(false)}/>:null}
+    {platformAdminOpen&&isPlatformAdmin?<PlatformAdminPanel actorUserId={family.userId} onClose={()=>setPlatformAdminOpen(false)}/>:null}
     {createFamilyOpen&&canCreateAdditionalFamily(family.role)?<CreateFamilyModal displayName={displayName} onClose={()=>setCreateFamilyOpen(false)} onCreated={id=>{localStorage.setItem(activeFamilyStorageKey(family.userId),id);window.location.reload()}}/>:null}
     {accountOpen?<AccountModal onClose={()=>setAccountOpen(false)}/>:null}
     {quickTaskOpen ? <QuickTaskModal familyId={family.familyId} members={taskState.members} saving={taskState.saving} onCreate={taskState.createTask} onClose={() => setQuickTaskOpen(false)}/> : null}

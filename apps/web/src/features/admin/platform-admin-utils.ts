@@ -1,0 +1,4 @@
+import type{PlatformAdminOverview}from'../../types/domain'
+export type PlatformUser=NonNullable<PlatformAdminOverview['users']>[number];export type PlatformUserFilter='all'|'active'|'orphan'|'blocked'
+export function filterPlatformUsers(users:PlatformUser[],filter:PlatformUserFilter,search=''){const query=search.trim().toLocaleLowerCase('pl');return users.filter(user=>{const matches=!query||`${user.displayName} ${user.email??''}`.toLocaleLowerCase('pl').includes(query);if(!matches)return false;if(filter==='active')return user.activeMembershipCount>0;if(filter==='orphan')return user.familyCount===0;if(filter==='blocked')return user.activeMembershipCount===0&&user.blockedMembershipCount>0;return true})}
+export function platformUserState(user:PlatformUser){if(user.familyCount===0)return'Bez rodziny';if(user.activeMembershipCount===0&&user.blockedMembershipCount>0)return'Brak aktywnego membershipu';return'Aktywny'}
