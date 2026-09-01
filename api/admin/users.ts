@@ -86,5 +86,19 @@ async function handler(request: Request) {
 }
 
 export default {
-  fetch: handler,
+  async fetch(request: Request) {
+    const origin = request.headers.get('origin')
+    const allowedOrigin = origin === 'https://localhost' || origin === 'capacitor://localhost' ? origin : null
+    const corsHeaders: Record<string,string> = allowedOrigin ? {
+      'Access-Control-Allow-Origin': allowedOrigin,
+      'Access-Control-Allow-Headers': 'authorization, content-type',
+      'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS',
+      'Vary': 'Origin',
+    } : {}
+    if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders })
+    const response = await handler(request)
+    const headers = new Headers(response.headers)
+    for (const [key,value] of Object.entries(corsHeaders)) headers.set(key,value)
+    return new Response(response.body, { status: response.status, statusText: response.statusText, headers })
+  },
 }
