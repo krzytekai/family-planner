@@ -6,7 +6,7 @@ describe('properties module UI contract',()=>{
  it('offers personal reminder presets and budget auto sync',()=>{for(const label of ['7 dni przed','2 dni przed','w dniu','dzień po','Automatycznie dodawaj'])expect(definition).toContain(label)})
  it('provides quick payment amount date notes and optional budget sync',()=>{for(const label of ['Kwota','Data płatności','Notatka','Dodaj do Budżetu'])expect(pay).toContain(label)})
  it('renders a horizontally scrollable annual table',()=>{expect(view).toContain('overflow-x-auto');expect(view).toContain('sticky left-0')})
- it('keeps child out through route and menu guards',()=>{expect(app).toContain("activeView === 'properties' && canProperties");expect(mobile).toContain('canProperties?')})
+ it('keeps child out through route and menu guards',()=>{expect(app).toContain("activeView === 'properties' && canProperties");expect(mobile).toContain("item('properties','Opłaty stałe',ReceiptText,canProperties)")})
  it('remounts and reloads data when the active family changes',()=>expect(app).toContain('<PropertiesView key={family.familyId} family={family}/>'))
  it('shows active and archived property views with lifecycle actions',()=>{for(const label of ['Aktywne','Zarchiwizowane','Archiwizuj','Przywróć','Usuń trwale'])expect(view).toContain(label)})
  it('limits permanent delete UI to owner and admin',()=>expect(view).toContain("family.role==='owner'||family.role==='admin'"))

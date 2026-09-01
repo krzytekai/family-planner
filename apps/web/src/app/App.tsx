@@ -56,9 +56,9 @@ function FamilyPlanner({ family, families, onFamilyChange, isPlatformAdmin, canA
   const nativePush = useNativePush()
   const [activeView, setActiveView] = useState<AppView>('dashboard')
   const [quickTaskOpen, setQuickTaskOpen] = useState(false)
-  const [calendarCreateRequest, setCalendarCreateRequest] = useState(0)
-  const [shoppingCreateRequest, setShoppingCreateRequest] = useState(0)
-  const [budgetCreateRequest, setBudgetCreateRequest] = useState(0)
+  const [calendarCreateRequest] = useState(0)
+  const [shoppingCreateRequest] = useState(0)
+  const [budgetCreateRequest] = useState(0)
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null)
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false)
@@ -75,7 +75,6 @@ function FamilyPlanner({ family, families, onFamilyChange, isPlatformAdmin, canA
   function showView(view: AppView) { setActiveView(view); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   function navigate(view: AppView) { if ((view === 'budget' && !canBudget) || (view === 'properties' && !canProperties) || view === activeView) return; viewHistory.current.push(view); showView(view) }
   function openQuickTask() { if (canCreateTasks) setQuickTaskOpen(true) }
-  function openContextualQuickAdd() { if (activeView === 'calendar') setCalendarCreateRequest((value) => value + 1); else if (activeView === 'shopping') setShoppingCreateRequest((value) => value + 1); else if (activeView === 'budget' && canBudget) setBudgetCreateRequest((value) => value + 1); else openQuickTask() }
   function remindTask(task: Task) { setReminderSource({ type: 'task', id: task.id, title: task.title, occursAt: task.dueAt }) }
   function remindEvent(event: CalendarEvent) { setReminderSource({ type: 'calendar_event', id: event.id, title: event.title, occursAt: event.allDay && event.startDate ? new Date(`${event.startDate}T09:00:00`).toISOString() : event.startsAt }) }
   function editReminder(reminder: Reminder) { setReminderSource({ type: reminder.sourceType, id: reminder.sourceId, title: reminder.title?.replace(/^Przypomnienie: /, '') ?? 'Wpis', occursAt: reminder.remindAt }) }
@@ -130,8 +129,8 @@ function FamilyPlanner({ family, families, onFamilyChange, isPlatformAdmin, canA
   })
 
   return <div className="app-mobile-density min-h-screen bg-brand-bg text-brand-text">
-    <Sidebar family={family} families={families} onFamilyChange={onFamilyChange} canAdmin={canAdmin} canCreateFamily={canCreateAdditionalFamily(family.role)} isPlatformAdmin={isPlatformAdmin} canBudget={canBudget} canProperties={canProperties} activeView={activeView} onNavigate={navigate} onAdmin={() => setAdminOpen(true)} onCreateFamily={()=>setCreateFamilyOpen(true)} onPlatformAdmin={()=>setPlatformAdminOpen(true)}/>
-    <MobileNav activeView={activeView} canBudget={canBudget} canProperties={canProperties} canQuickAdd={activeView === 'shopping' || activeView === 'budget' || canCreateTasks} canAdmin={canAdmin} isPlatformAdmin={isPlatformAdmin} canCreateFamily={canCreateAdditionalFamily(family.role)} onNavigate={navigate} onQuickAdd={openContextualQuickAdd} onAdmin={()=>setAdminOpen(true)} onCreateFamily={()=>setCreateFamilyOpen(true)} onPlatformAdmin={()=>setPlatformAdminOpen(true)}/>
+    <Sidebar family={family} families={families} onFamilyChange={onFamilyChange} canAdmin={canAdmin} canCreateFamily={canCreateAdditionalFamily(family.role)} isPlatformAdmin={isPlatformAdmin} canBudget={canBudget} canProperties={canProperties} activeView={activeView} onNavigate={navigate} onAdmin={() => setAdminOpen(true)} onPlatformAdmin={()=>setPlatformAdminOpen(true)}/>
+    <MobileNav activeView={activeView} canBudget={canBudget} canProperties={canProperties} canAdmin={canAdmin} isPlatformAdmin={isPlatformAdmin} canCreateFamily={canCreateAdditionalFamily(family.role)} onNavigate={navigate} onAdmin={()=>setAdminOpen(true)} onPlatformAdmin={()=>setPlatformAdminOpen(true)}/>
     <main className="mobile-nav-safe-content lg:ml-64 lg:pb-8">
       <AppHeader family={family} families={families} onFamilyChange={onFamilyChange} subtitle={headerSubtitle} displayName={displayName} unreadCount={notificationState.unreadCount} onOpenNotifications={() => { setNotificationCenterOpen(true); void notificationState.refresh() }} onLogout={() => void logout()}/>
       {activeView === 'dashboard' ? <DashboardView family={family} displayName={displayName} todayTasks={taskState.todayTasks} stats={taskState.stats} loading={taskState.loading} error={taskState.error} actionError={taskState.actionError} updatingIds={taskState.updatingIds} canCreateTasks={canCreateTasks} onQuickAdd={openQuickTask} onViewTasks={() => navigate('tasks')} onViewCalendar={() => navigate('calendar')} onViewShopping={() => navigate('shopping')} onToggle={(task) => void taskState.toggleCompleted(task)} onDelete={setTaskToDelete} unreadNotifications={notificationState.unreadCount} onOpenNotifications={() => setNotificationCenterOpen(true)} canBudget={canBudget} onViewBudget={() => navigate('budget')}/> : null}
@@ -141,7 +140,7 @@ function FamilyPlanner({ family, families, onFamilyChange, isPlatformAdmin, canA
       {activeView === 'budget' && canBudget ? <BudgetView family={family} quickAddRequest={budgetCreateRequest}/> : null}
       {activeView === 'properties' && canProperties ? <PropertiesView key={family.familyId} family={family}/> : null}
     </main>
-    {adminOpen && canAdmin ? <AdminPanel family={family} onClose={() => setAdminOpen(false)} onFamilyChanged={()=>window.location.reload()}/> : null}
+    {adminOpen && (canAdmin||canCreateAdditionalFamily(family.role)) ? <AdminPanel family={family} canCreateFamily={canCreateAdditionalFamily(family.role)} onCreateFamily={()=>{setAdminOpen(false);setCreateFamilyOpen(true)}} onClose={() => setAdminOpen(false)} onFamilyChanged={()=>window.location.reload()}/> : null}
     {platformAdminOpen&&isPlatformAdmin?<PlatformAdminPanel onClose={()=>setPlatformAdminOpen(false)}/>:null}
     {createFamilyOpen&&canCreateAdditionalFamily(family.role)?<CreateFamilyModal displayName={displayName} onClose={()=>setCreateFamilyOpen(false)} onCreated={id=>{localStorage.setItem(activeFamilyStorageKey(family.userId),id);window.location.reload()}}/>:null}
     {quickTaskOpen ? <QuickTaskModal familyId={family.familyId} members={taskState.members} saving={taskState.saving} onCreate={taskState.createTask} onClose={() => setQuickTaskOpen(false)}/> : null}

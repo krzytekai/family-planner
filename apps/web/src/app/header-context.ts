@@ -7,7 +7,7 @@ const headerSubtitles: Record<Exclude<HeaderContext, 'dashboard'>, string> = {
   tasks: 'Zadania',
   shopping: 'Zakupy',
   budget: 'Budżet',
-  properties: 'Nieruchomości i opłaty',
+  properties: 'Opłaty stałe',
   notifications: 'Powiadomienia',
   admin: 'Administracja',
 }
