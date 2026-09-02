@@ -1,4 +1,4 @@
-import{describe,expect,it}from'vitest';import{canAccessProperties,chargeForMonth,effectiveAmount,isOverdue,propertySummary,sortDueCharges}from'./property-utils';import type{ChargeDefinition,PropertyCharge}from'./types'
+import{describe,expect,it}from'vitest';import{canAccessProperties,chargeForMonth,chargesForMonth,effectiveAmount,filterMonthlyCharges,isOverdue,monthKey,propertySummary,shiftMonth,sortDueCharges}from'./property-utils';import type{ChargeDefinition,PropertyCharge}from'./types'
 const charge=(o:Partial<PropertyCharge>={}):PropertyCharge=>({id:'c1',familyId:'f1',propertyId:'p1',unitId:null,definitionId:'d1',dueDate:'2026-08-15',plannedAmountCents:10000,actualAmountCents:null,currency:'PLN',status:'pending',paidAt:null,notes:null,budgetTransactionId:null,...o});const definition={id:'d1'}as ChargeDefinition
 describe('property charge logic',()=>{
  it('calculates overdue without persisting another status',()=>{expect(isOverdue(charge(), '2026-08-16')).toBe(true);expect(isOverdue(charge({status:'paid'}),'2026-08-16')).toBe(false)})
@@ -6,5 +6,9 @@ describe('property charge logic',()=>{
  it('sorts overdue before upcoming charges',()=>expect(sortDueCharges([charge({id:'future',dueDate:'2026-08-20'}),charge({id:'late',dueDate:'2026-08-10'})],'2026-08-15').map(x=>x.id)).toEqual(['late','future']))
  it('summarizes paid, pending and overdue amounts',()=>expect(propertySummary([charge({status:'paid',actualAmountCents:9000,paidAt:'2026-08-01'}),charge({id:'late',dueDate:'2020-01-01'})])).toEqual({paid:9000,pending:10000,overdue:10000}))
  it('finds irregular occurrences only in their actual month',()=>{expect(chargeForMonth([charge()],definition,2026,8)?.id).toBe('c1');expect(chargeForMonth([charge()],definition,2026,9)).toBeNull()})
+ it('defaults month helpers to exact selected-month boundaries',()=>{const august=new Date(2026,7,1),charges=[charge(),charge({id:'september',dueDate:'2026-09-01'}),charge({id:'july',dueDate:'2026-07-31'})];expect(monthKey(august)).toBe('2026-08');expect(chargesForMonth(charges,august).map(item=>item.id)).toEqual(['c1'])})
+ it('navigates months across year boundaries',()=>{expect(monthKey(shiftMonth(new Date(2026,11,1),1))).toBe('2027-01');expect(monthKey(shiftMonth(new Date(2026,0,1),-1))).toBe('2025-12')})
+ it('filters selected-month charges by pending and paid status',()=>{const values=[charge(),charge({id:'paid',status:'paid'}),charge({id:'cancelled',status:'cancelled'})];expect(filterMonthlyCharges(values,'all')).toHaveLength(3);expect(filterMonthlyCharges(values,'pending').map(item=>item.id)).toEqual(['c1']);expect(filterMonthlyCharges(values,'paid').map(item=>item.id)).toEqual(['paid'])})
+ it('keeps yearly totals out of a selected month summary',()=>{const values=[charge(),charge({id:'other-month',dueDate:'2026-09-15',status:'paid'})];expect(propertySummary(chargesForMonth(values,new Date(2026,7,1)))).toEqual({paid:0,pending:10000,overdue:10000})})
  it.each([['owner',true],['admin',true],['adult',true],['child',false]])('enforces %s module access',(role,allowed)=>expect(canAccessProperties(role)).toBe(allowed))
 })

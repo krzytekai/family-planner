@@ -11,4 +11,4 @@ export interface PropertyInput{familyId:string;name:string;address:string;descri
 export interface UnitInput{familyId:string;propertyId:string;name:string;type:PropertyUnitType}
 export interface DefinitionInput{familyId:string;propertyId:string;unitId:string|null;name:string;category:ChargeCategory;amountMode:AmountMode;plannedAmountCents:number|null;recurrence:ChargeRecurrence;timezone:string;startDate:string;dueDay:number|null;intervalMonths:number|null;recurrenceMonth:number|null;selectedDates:Array<{month:number|undefined;day:number|undefined}>;reminderOffsets:number[];autoGenerate:boolean;budgetSyncMode:'manual'|'automatic'}
 export interface PaymentInput{familyId:string;chargeId:string;amountCents:number;paidAt:string;notes:string;syncBudget:boolean}
-export type PropertiesTab='dashboard'|'charges'|'due'|'year'|'history'|'settings'
+export type PropertiesTab='overview'|'year'|'history'|'settings'
