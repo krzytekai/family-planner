@@ -10,6 +10,25 @@ function env() {
   return { url, publishableKey, secretKey }
 }
 
+type AdminClient = ReturnType<typeof createClient>
+
+async function findAuthUserByEmail(admin: AdminClient, normalizedEmail: string) {
+  const perPage = 200
+  for (let page = 1; page <= 100; page += 1) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage })
+    if (error) throw new Error('auth_user_lookup_failed')
+    const user = data.users.find(candidate => candidate.email?.trim().toLowerCase() === normalizedEmail)
+    if (user) return user
+    if (data.users.length < perPage) return null
+  }
+  throw new Error('auth_user_lookup_limit_exceeded')
+}
+
+async function cleanupCreatedAuthUser(admin: AdminClient, userId: string) {
+  const { error } = await admin.auth.admin.deleteUser(userId, false)
+  if (!error) await admin.from('profiles').delete().eq('id', userId)
+}
+
 async function authorize(request: Request, familyId: string) {
   const { url, publishableKey, secretKey } = env()
   const authHeader = request.headers.get('authorization')
@@ -48,17 +67,65 @@ async function handler(request: Request) {
       const auth = await authorize(request, familyId)
       if ('error' in auth) return auth.error
       if (auth.actorRole === 'admin' && role === 'admin') return json({ error: 'Administrator może dodawać tylko dorosłych i dzieci.' }, 403)
-      const { data: created, error: createError } = await auth.admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { display_name: displayName } })
-      if (createError || !created.user) return json({ error: createError?.message ?? 'Nie udało się utworzyć konta.' }, 400)
-      const userId = created.user.id
-      const { error: profileError } = await auth.admin.from('profiles').upsert({ id: userId, email, display_name: displayName })
-      const { error: memberError } = await auth.admin.from('family_members').insert({ family_id: familyId, user_id: userId, display_name: displayName, role, status: 'active', created_by: auth.actor.id })
-      if (profileError || memberError) {
-        await auth.admin.auth.admin.deleteUser(userId)
-        return json({ error: profileError?.message ?? memberError?.message }, 400)
+
+      const normalizedEmail = String(email).trim().toLowerCase()
+      const normalizedDisplayName = String(displayName).trim()
+      let authUser = await findAuthUserByEmail(auth.admin, normalizedEmail)
+      let createdAuthUser = false
+
+      if (!authUser) {
+        const { data: created, error: createError } = await auth.admin.auth.admin.createUser({ email: normalizedEmail, password, email_confirm: true, user_metadata: { display_name: normalizedDisplayName } })
+        if (createError || !created.user) return json({ error: createError?.message ?? 'Nie udało się utworzyć konta.' }, 400)
+        authUser = created.user
+        createdAuthUser = true
       }
-      await auth.admin.from('audit_logs').insert({ family_id: familyId, actor_user_id: auth.actor.id, action: 'family.member.created', entity_type: 'family_member', entity_id: userId, metadata: { role } })
-      return json({ ok: true, userId }, 201)
+
+      const userId = authUser.id
+      const { data: platformAdmin } = await auth.admin.from('platform_admins').select('user_id').eq('user_id', userId).maybeSingle()
+      if (platformAdmin) {
+        if (createdAuthUser) await cleanupCreatedAuthUser(auth.admin, userId)
+        return json({ error: 'Konto administratora platformy nie może zostać dodane jako członek rodziny.', code: 'platform_admin_protected' }, 409)
+      }
+
+      const { data: profile, error: profileLookupError } = await auth.admin.from('profiles').select('id,deleted_at').eq('id', userId).maybeSingle()
+      if (profileLookupError) {
+        if (createdAuthUser) await cleanupCreatedAuthUser(auth.admin, userId)
+        return json({ error: 'Nie udało się sprawdzić profilu użytkownika.' }, 400)
+      }
+      if (profile?.deleted_at) return json({ error: 'To konto zostało wcześniej usunięte i nie może zostać ponownie dodane.', code: 'profile_deleted' }, 409)
+
+      const profileWrite = createdAuthUser
+        ? await auth.admin.from('profiles').upsert({ id: userId, email: normalizedEmail, display_name: normalizedDisplayName })
+        : profile
+          ? { error: null }
+          : await auth.admin.from('profiles').insert({ id: userId, email: normalizedEmail, display_name: normalizedDisplayName })
+      if (profileWrite.error) {
+        if (createdAuthUser) await cleanupCreatedAuthUser(auth.admin, userId)
+        return json({ error: 'Nie udało się przygotować profilu użytkownika.' }, 400)
+      }
+
+      const { data: membership, error: membershipLookupError } = await auth.admin.from('family_members').select('status').eq('family_id', familyId).eq('user_id', userId).maybeSingle()
+      if (membershipLookupError) {
+        if (createdAuthUser) await cleanupCreatedAuthUser(auth.admin, userId)
+        return json({ error: 'Nie udało się sprawdzić członkostwa użytkownika.' }, 400)
+      }
+      if (membership?.status === 'active') {
+        if (createdAuthUser) await cleanupCreatedAuthUser(auth.admin, userId)
+        return json({ error: 'Ten użytkownik już należy do tej rodziny.', code: 'already_member' }, 409)
+      }
+
+      const memberWrite = membership
+        ? await auth.admin.from('family_members').update({ display_name: normalizedDisplayName, role, status: 'active', updated_at: new Date().toISOString() }).eq('family_id', familyId).eq('user_id', userId)
+        : await auth.admin.from('family_members').insert({ family_id: familyId, user_id: userId, display_name: normalizedDisplayName, role, status: 'active', created_by: auth.actor.id })
+      if (memberWrite.error) {
+        if (createdAuthUser) await cleanupCreatedAuthUser(auth.admin, userId)
+        if (memberWrite.error.code === '23505') return json({ error: 'Ten użytkownik już należy do tej rodziny.', code: 'already_member' }, 409)
+        return json({ error: 'Nie udało się dodać użytkownika do rodziny.' }, 400)
+      }
+
+      const result = createdAuthUser ? 'new_user_created' : membership ? 'membership_reactivated' : 'existing_user_added'
+      await auth.admin.from('audit_logs').insert({ family_id: familyId, actor_user_id: auth.actor.id, action: membership ? 'family.member.reactivated' : 'family.member.created', entity_type: 'family_member', entity_id: userId, metadata: { role } })
+      return json({ ok: true, userId, result }, createdAuthUser ? 201 : 200)
     }
 
     if (request.method === 'PATCH') {
