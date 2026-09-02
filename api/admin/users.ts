@@ -34,7 +34,7 @@ async function handler(request: Request) {
       if (!familyId) return json({ error: 'Brak familyId.' }, 400)
       const auth = await authorize(request, familyId)
       if ('error' in auth) return auth.error
-      const { data, error } = await auth.admin.from('family_members').select('family_id,user_id,display_name,role,status,created_at,profiles(email)').eq('family_id', familyId).order('created_at')
+      const { data, error } = await auth.admin.from('family_members').select('family_id,user_id,display_name,role,status,created_at,profiles!family_members_user_id_profiles_fkey(email)').eq('family_id', familyId).order('created_at')
       if (error) return json({ error: error.message }, 400)
       const members = (data ?? []).map((m: any) => ({ userId:m.user_id, familyId:m.family_id, displayName:m.display_name, role:m.role, status:m.status, createdAt:m.created_at, email:Array.isArray(m.profiles)?m.profiles[0]?.email:m.profiles?.email ?? null }))
       return json({ members })
