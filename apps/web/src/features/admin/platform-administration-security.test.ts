@@ -24,6 +24,22 @@ describe('platform administration security and deletion recovery', () => {
     expect(panel).not.toContain('service_role')
   })
 
+  it('guards actor and target separation before invoking the finalizer', () => {
+    const separationGuard = endpoint.indexOf('targetUserId === actorUserId')
+    const finalizerCall = endpoint.indexOf("rpc('finalize_platform_user_deletion'")
+    expect(separationGuard).toBeGreaterThan(-1)
+    expect(finalizerCall).toBeGreaterThan(separationGuard)
+    expect(endpoint).toContain("actor_user_id: actorUserId")
+    expect(endpoint).toContain("target_user_id: targetUserId")
+  })
+
+  it('the deployed migration source tombstones only the target profile', () => {
+    const profileUpdate = lifecycle.slice(lifecycle.indexOf('update public.profiles'), lifecycle.indexOf('insert into public.platform_audit_logs'))
+    expect(profileUpdate).toContain('where id=target_user_id')
+    expect(profileUpdate).not.toContain('where id=actor_user_id')
+    expect(profileUpdate).not.toContain('where id in')
+  })
+
   it('runs preflight and hard Auth deletion before finalization', () => {
     const preflight = endpoint.indexOf("rpc('get_platform_user_deletion_preflight'")
     const authDelete = endpoint.indexOf('deleteUser(targetUserId, false)')
@@ -45,6 +61,15 @@ describe('platform administration security and deletion recovery', () => {
     expect(lifecycle).toContain("on conflict(action,entity_id) where action='platform.user.deleted' do nothing")
   })
 
+  it('reports a stable finalization stage and PostgreSQL code without sensitive details', () => {
+    expect(endpoint).toContain("code: 'PROFILE_FINALIZATION_FAILED'")
+    expect(endpoint).toContain("stage: 'profile_finalization'")
+    expect(endpoint).toContain("const postgresCode = finalizeError.code || 'unknown'")
+    expect(endpoint).toContain('postgresCode, actorUserId, targetUserId')
+    expect(endpoint).not.toContain('finalizeError.message')
+    expect(endpoint).not.toContain('finalizeError.details')
+  })
+
   it('blocks self deletion and active memberships', () => {
     expect(endpoint).toContain('targetUserId === actorUserId')
     expect(endpoint).toContain("preflight?.reason === 'active_memberships'")
@@ -64,6 +89,20 @@ describe('platform administration security and deletion recovery', () => {
     expect(client).toContain('finally{clearTimeout(timeout)}')
     expect(endpoint).toContain('AbortSignal.timeout(BACKEND_TIMEOUT_MS)')
     expect(panel).toContain('finally{setBusy(false)}')
+  })
+
+  it('prevents duplicate delete requests before React can rerender busy state', () => {
+    expect(panel).toContain('deleteInFlight=useRef(false)')
+    expect(panel).toContain('if(!deleteTarget||deleteInFlight.current)return')
+    expect(panel).toContain('deleteInFlight.current=true')
+    expect(panel).toContain('finally{deleteInFlight.current=false;setBusy(false)}')
+  })
+
+  it('logs safe actor-target stage transitions without credentials', () => {
+    for (const stage of ['platform_delete.start','platform_delete.preflight','platform_delete.auth_delete','platform_delete.auth_absent_recovery','platform_delete.finalizer_start','platform_delete.finalizer_success','platform_delete.finalizer_error']) expect(endpoint).toContain(stage)
+    expect(endpoint).toContain('console.info(stage, { actorUserId, targetUserId })')
+    expect(endpoint).not.toContain('console.info(token')
+    expect(endpoint).not.toContain('console.info(authHeader')
   })
 
   it('refreshes the overview and closes confirmation after successful deletion', () => {
