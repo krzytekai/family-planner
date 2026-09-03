@@ -1,3 +1,4 @@
+import { formatDateTimeLocal as formatLocal } from '../../lib/date-time-local'
 import type { FamilyRole } from '../../types/domain'
 import type { Task } from '../tasks/types'
 import type { CalendarEvent, CalendarFilter, CalendarItem } from './types'
@@ -132,6 +133,5 @@ export function formatAgendaDate(date: Date): string {
 export function formatDateTimeLocal(value: string | null): string {
   if (!value) return ''
   const date = new Date(value)
-  const offset = date.getTimezoneOffset() * 60_000
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16)
+  return formatLocal(date)
 }

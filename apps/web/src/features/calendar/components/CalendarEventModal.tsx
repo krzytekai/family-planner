@@ -1,3 +1,4 @@
+import { parseDateTimeLocal } from '../../../lib/date-time-local'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { CalendarPlus, X } from 'lucide-react'
 import { formatDateTimeLocal, toDateKey } from '../calendar-utils'
@@ -50,8 +51,8 @@ export function CalendarEventModal({ familyId, event, initialDate, saving, onSav
     if (form.allDay && form.endDate && form.endDate < form.startDate) return setError('Data zakończenia nie może być wcześniejsza niż rozpoczęcie.')
     if (!form.allDay && Boolean(form.timedEndDate) !== Boolean(form.timedEndTime)) return setError('Podaj zarówno datę, jak i godzinę zakończenia albo pozostaw oba pola puste.')
 
-    const startsAt = form.allDay ? null : new Date(`${form.timedStartDate}T${form.timedStartTime}`).toISOString()
-    const endsAt = !form.allDay && form.timedEndDate && form.timedEndTime ? new Date(`${form.timedEndDate}T${form.timedEndTime}`).toISOString() : null
+    const startsAt = form.allDay ? null : parseDateTimeLocal(`${form.timedStartDate}T${form.timedStartTime}`).toISOString()
+    const endsAt = !form.allDay && form.timedEndDate && form.timedEndTime ? parseDateTimeLocal(`${form.timedEndDate}T${form.timedEndTime}`).toISOString() : null
     if (startsAt && endsAt && endsAt < startsAt) return setError('Koniec wydarzenia nie może być wcześniejszy niż początek.')
     try {
       await onSave({

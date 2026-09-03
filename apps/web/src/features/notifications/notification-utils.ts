@@ -1,3 +1,4 @@
+import { formatDateTimeLocal } from '../../lib/date-time-local'
 import type { AppNotification, NotificationPreferences, NotificationType, Reminder } from './types'
 
 export type NotificationDestination = 'dashboard' | 'tasks' | 'calendar' | 'properties'
@@ -58,6 +59,5 @@ export function formatNotificationDate(value: string) {
 
 export function toDateTimeLocal(value: string | null) {
   const date = value ? new Date(value) : new Date(Date.now() + 60 * 60 * 1000)
-  const offset = date.getTimezoneOffset() * 60_000
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16)
+  return formatDateTimeLocal(date)
 }

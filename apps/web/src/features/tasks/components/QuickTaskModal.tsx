@@ -1,3 +1,4 @@
+import { formatDateTimeLocal, parseDateTimeLocal } from '../../../lib/date-time-local'
 import { useMemo, useState, type FormEvent } from 'react'
 import { X } from 'lucide-react'
 import type { Reminder } from '../../notifications/types'
@@ -11,19 +12,19 @@ interface Props {
 const weekdays = [{id:1,label:'Pn'},{id:2,label:'Wt'},{id:3,label:'Śr'},{id:4,label:'Cz'},{id:5,label:'Pt'},{id:6,label:'So'},{id:7,label:'Nd'}]
 const offsets = [{value:10,label:'10 min'},{value:30,label:'30 min'},{value:60,label:'1 godz.'},{value:180,label:'3 godz.'},{value:1440,label:'1 dzień'}]
 
-function localDateTime(value?: string | null) { if (!value) return ''; const date=new Date(value); return new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,16) }
+
 
 export function QuickTaskModal({familyId,members,saving,task,reminder,canManageRecurrence=true,onClose,onCreate,onUpdate}:Props){
   const initial=task?.recurrence?.rule
   const [title,setTitle]=useState(task?.title??''); const [description,setDescription]=useState(task?.description??'')
-  const [dueAt,setDueAt]=useState(localDateTime(task?.dueAt)); const [priority,setPriority]=useState<TaskPriority>(task?.priority??'normal')
+  const [dueAt,setDueAt]=useState(()=>task?.dueAt?formatDateTimeLocal(new Date(task.dueAt)):''); const [priority,setPriority]=useState<TaskPriority>(task?.priority??'normal')
   const [assignedTo,setAssignedTo]=useState(task?.assignedTo?.id??''); const [type,setType]=useState<RecurrenceType|'none'>(initial?.type??'none')
   const [interval,setInterval]=useState(initial?.interval??1); const [days,setDays]=useState<number[]>(initial?.weekdays??[new Date().getDay()||7])
   const initialOffset=task?.assigneeReminderOffsetMinutes??reminder?.assigneeReminderOffsetMinutes??30; const [reminderEnabled,setReminderEnabled]=useState((task?.assigneeReminderOffsetMinutes??reminder?.assigneeReminderOffsetMinutes)!=null)
   const [offset,setOffset]=useState(initialOffset); const [custom,setCustom]=useState(!offsets.some((item)=>item.value===initialOffset)); const [error,setError]=useState<string|null>(null)
   const rule=useMemo(()=>serializeRecurrence(type,interval,days,dueAt),[days,dueAt,interval,type]); const reminderBlocked=!assignedTo||!dueAt
-  async function submit(event:FormEvent){event.preventDefault();setError(null);if(!dueAt){setError('Ustaw termin zadania.');return}if(rule&&!validateRecurrenceRule(rule)){setError('Uzupełnij poprawnie regułę powtarzania.');return}if(reminderEnabled&&reminderBlocked){setError(!assignedTo?'Najpierw przypisz zadanie do członka rodziny.':'Ustaw termin zadania, aby włączyć przypomnienie.');return}if(reminderEnabled&&new Date(dueAt).getTime()-offset*60000<=Date.now()){setError('Termin przypomnienia musi przypadać w przyszłości.');return}
-    const input:NewTaskInput={familyId,title,description,dueAt:new Date(dueAt).toISOString(),priority,assignedTo:assignedTo||null,recurrence:rule?{rule,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone}:null,assigneeReminderOffsetMinutes:reminderEnabled?offset:null}
+  async function submit(event:FormEvent){event.preventDefault();setError(null);if(!dueAt){setError('Ustaw termin zadania.');return}if(rule&&!validateRecurrenceRule(rule)){setError('Uzupełnij poprawnie regułę powtarzania.');return}if(reminderEnabled&&reminderBlocked){setError(!assignedTo?'Najpierw przypisz zadanie do członka rodziny.':'Ustaw termin zadania, aby włączyć przypomnienie.');return}if(reminderEnabled&&parseDateTimeLocal(dueAt).getTime()-offset*60000<=Date.now()){setError('Termin przypomnienia musi przypadać w przyszłości.');return}
+    const input:NewTaskInput={familyId,title,description,dueAt:parseDateTimeLocal(dueAt).toISOString(),priority,assignedTo:assignedTo||null,recurrence:rule?{rule,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone}:null,assigneeReminderOffsetMinutes:reminderEnabled?offset:null}
     try{if(task&&onUpdate)await onUpdate({...input,taskId:task.id,stopRecurrence:Boolean(task.recurrence&&!rule),changeRecurrence:canManageRecurrence,changeAssigneeReminder:canManageRecurrence});else await onCreate(input);onClose()}catch(reason){setError(reason instanceof Error?reason.message:'Nie udało się zapisać zadania.')}
   }
   const inputClass='mt-1 w-full rounded-xl border border-white/10 bg-[#101017] px-3 py-2.5 text-sm text-brand-text outline-none focus:border-brand-gold/50'
