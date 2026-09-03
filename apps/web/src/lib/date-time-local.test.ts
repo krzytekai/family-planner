@@ -12,6 +12,7 @@ describe('device-local form time versus UTC storage', () => {
   // A fresh process sets TZ before Date is initialized; independent of worker/host TZ.
   it.each([
     ['Europe/Warsaw', '2026-09-03T14:39', '2026-09-03T12:39:00.000Z'],
+    ['Europe/Warsaw', '2026-09-04T16:30', '2026-09-04T14:30:00.000Z'],
     ['Europe/Warsaw', '2026-01-03T14:39', '2026-01-03T13:39:00.000Z'],
     ['Europe/Warsaw', '2026-09-03T00:39', '2026-09-02T22:39:00.000Z'],
     ['Europe/Warsaw', '2026-03-29T01:30', '2026-03-29T00:30:00.000Z'],

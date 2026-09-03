@@ -55,7 +55,7 @@ export interface NewTaskInput {
   description: string
   priority: TaskPriority
   assignedTo: string | null
-  dueAt: string
+  dueAt: string | null
   recurrence: { rule: RecurrenceRule; timezone: string } | null
   assigneeReminderOffsetMinutes: number | null
 }
