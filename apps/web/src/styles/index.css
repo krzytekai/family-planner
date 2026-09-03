@@ -32,6 +32,39 @@ button { cursor: pointer; }
 .gold-glow { box-shadow: 0 0 35px rgba(255,216,77,.13); }
 .scrollbar-none::-webkit-scrollbar { display: none; }
 
+/* Shared task-style filters and module tabs: selection changes colors, never metrics.
+   Deliberately avoid bg-brand-gold utility so mobile CTA rules cannot match. */
+.selection-control {
+  position: relative;
+  flex-shrink: 0;
+  min-width: 0;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.025);
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color .15s, border-color .15s, color .15s;
+}
+.selection-chip { border-radius: 9999px; }
+.selection-tab { border-radius: 8px; padding-inline: 4px; width: 100%; }
+.selection-control[aria-pressed="true"] {
+  background: #ffd84d;
+  border-color: rgba(255,216,77,.3);
+  color: #000;
+}
+.selection-control[aria-pressed="false"]:hover {
+  border-color: rgba(255,216,77,.2);
+  color: #f5f7fa;
+}
+.selection-control:focus-visible {
+  outline: 2px solid #ffd84d;
+  outline-offset: 2px;
+}
+
 .mobile-nav { padding-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)); }
 .mobile-nav-safe-content { padding-bottom: calc(60px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))); }
 .mobile-more-menu { bottom: calc(56px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))); }
@@ -202,6 +235,25 @@ button { cursor: pointer; }
   color-scheme: dark;
   color: #f5f7fa;
   background-color: #101017;
+}
+
+@media (max-width: 639px) {
+  /* Explicit shared metrics also override generic group/dialog density rules. */
+  .app-mobile-density button.selection-control {
+    height: 28px;
+    min-height: 28px;
+    padding: 0 9px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+  }
+  .app-mobile-density button.selection-tab { padding-inline: 4px; }
+  /* 28px visual with a 44px touch target, without widening adjacent chips. */
+  .selection-control::after {
+    content: '';
+    position: absolute;
+    inset: -8px 0;
+  }
 }
 
 .budget-dark-select:focus-visible {

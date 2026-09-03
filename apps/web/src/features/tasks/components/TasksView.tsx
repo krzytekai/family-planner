@@ -53,7 +53,7 @@ export function TasksView({ family, tasks, loading, error, actionError, updating
       </section>
 
       <div className="scrollbar-none mt-6 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filtry zadań">
-        {filters.map((item) => <button key={item.value} type="button" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)} className={`shrink-0 rounded-full border px-3.5 py-2 text-xs font-medium transition ${filter === item.value ? 'border-brand-gold/30 bg-brand-gold text-black' : 'border-white/10 bg-white/[.025] text-brand-muted hover:border-brand-gold/20 hover:text-brand-text'}`}>{item.label}</button>)}
+        {filters.map((item) => <button key={item.value} type="button" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)} className="selection-control selection-chip">{item.label}</button>)}
       </div>
       {!loading && !error && actionError ? <p role="alert" className="mt-4 rounded-xl border border-red-400/15 bg-red-400/5 p-3 text-sm text-red-300">{actionError}</p> : null}
 
