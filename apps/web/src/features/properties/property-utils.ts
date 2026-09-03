@@ -10,3 +10,9 @@ export const filterMonthlyCharges=(charges:PropertyCharge[],filter:'all'|'pendin
 export const shiftMonth=(date:Date,amount:number)=>new Date(date.getFullYear(),date.getMonth()+amount,1)
 export function chargeForMonth(charges:PropertyCharge[],definition:ChargeDefinition,year:number,month:number){return charges.find(c=>c.definitionId===definition.id&&c.dueDate.startsWith(`${year}-${String(month).padStart(2,'0')}-`))??null}
 export const canAccessProperties=(role:string)=>role==='owner'||role==='admin'||role==='adult'
+
+// A moved definition never changes the group stored on an existing charge.
+export function chargesForProperty(charges:PropertyCharge[],propertyId:string){return propertyId==='all'?charges:charges.filter(charge=>charge.propertyId===propertyId)}
+export function definitionsForProperty(definitions:ChargeDefinition[],charges:PropertyCharge[],propertyId:string){
+  return definitions.filter(definition=>definition.active&&(propertyId==='all'||definition.propertyId===propertyId||charges.some(charge=>charge.definitionId===definition.id&&charge.propertyId===propertyId)))
+}

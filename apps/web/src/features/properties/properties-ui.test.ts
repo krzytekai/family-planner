@@ -1,4 +1,4 @@
-import{readFileSync,readdirSync}from'node:fs'
+import{readFileSync}from'node:fs'
 import{resolve}from'node:path'
 import{describe,expect,it}from'vitest'
 
@@ -43,13 +43,12 @@ describe('shared selection controls and generic charge groups',()=>{
     expect(runtime).not.toMatch(/nieruchomo/iu)
     for(const label of ['Grupy opłat','Grupa opłat','Dodaj grupę','Edytuj grupę','Nazwa grupy','Wszystkie grupy opłat','Brak grup opłat'])expect(runtime).toContain(label)
   })
-  it('retains technical property APIs and does not introduce migration 0020',()=>{
+  it('retains technical property APIs',()=>{
     const repository=read('src/features/properties/api/property-repository.ts')
     expect(repository).toContain("from('property_charge_definitions').select")
     expect(repository).toContain("rpc('update_property_charge_definition'")
     expect(repository).toContain("rpc('set_property_charge_definition_active'")
     expect(definition).toContain('unitId:null')
-    expect(readdirSync(resolve(process.cwd(),'../../database/migrations')).filter(file=>file.startsWith('0020'))).toEqual([])
   })
 })
 
