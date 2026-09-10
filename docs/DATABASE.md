@@ -106,6 +106,8 @@ Powiadomienie o przypisaniu zadania tworzy trigger bazy. Preferencja typu zdarze
 
 ## Backup i eksport
 
+Migracja 0023 (oczekująca na ręczne zatwierdzenie) dodaje owner-only RPC `preflight_family_restore` i `restore_family_data`. Restore działa wyłącznie jako `replace_selected` do istniejącej rodziny, powtarza walidację w transakcji, stosuje advisory lock i row lock, mapuje UUID oraz użytkowników i nie modyfikuje Auth, członkostw ani preferencji powiadomień.
+
 Migracja 0022 dodaje wyłącznie wąskie RPC `public.export_family_data(target_family_id, selected_modules)`. Funkcja nie tworzy tabeli plików i nie przechowuje kopii w bazie. Aktywny owner/admin otrzymuje wersjonowany JSON z jawnie dozwolonych modułów. Dane są agregowane w jednym głównym zapytaniu, każde źródło ma filtr `family_id`, a przypomnienia i preferencje dodatkowo filtr `auth.uid()`. Wynik większy niż 8 MiB jest odrzucany bez obcinania. Po zbudowaniu wyniku funkcja zapisuje bezpieczne zdarzenie `family.backup.exported` bez treści kopii.
 
 ## Budget

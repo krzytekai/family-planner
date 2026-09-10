@@ -1,5 +1,13 @@
 # Backup i eksport danych
 
+## Przywracanie — Phase 2A
+
+Phase 2A implementuje kontrolowane przywracanie do istniejącej rodziny w trybie `replace_selected`. Operacja jest dostępna wyłącznie dla ownera i wymaga serwerowego preflightu, jawnego mapowania użytkowników oraz wpisania aktualnej nazwy rodziny. Baza blokuje rodzinę na czas jednej atomowej transakcji, generuje nowe identyfikatory danych biznesowych i zapisuje jedno bezpieczne zdarzenie audytowe.
+
+Przywracane mogą być: zadania, kalendarz, zakupy, budżet, opłaty stałe i przyszłe osobiste przypomnienia. Dane rodziny są tylko manifestem, a lista członków katalogiem do mapowania. Operacja nie tworzy kont ani członkostw i nie odtwarza Auth, urządzeń, tokenów, powiadomień, push state ani `notification_preferences`.
+
+Kolejne etapy mogą dodać przywracanie jako nową rodzinę, merge, szyfrowany/cloud backup, harmonogram kopii, asynchroniczne duże restore oraz migracje między wersjami formatu.
+
 ## Faza 1 — eksport lokalny
 
 Owner i administrator aktywnej rodziny mogą utworzyć wersjonowaną kopię JSON albo eksport CSV wybranego zestawu tabelarycznego. Dane są pobierane przez `public.export_family_data(uuid,text[])`, które kontroluje rolę po stronie bazy i buduje dane biznesowe w jednym snapshotcie zapytania PostgreSQL.

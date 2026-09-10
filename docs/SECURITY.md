@@ -73,6 +73,8 @@ RLS dopuszcza dane finansowe wyłącznie dla aktywnych ról `owner`, `admin` i `
 
 ## Backup i eksport danych
 
+Przywracanie Phase 2A jest egzekwowane przez bazę jako owner-only. Klient ma dostęp tylko do dwóch publicznych RPC; prywatny kontekst restore i helpery nie są dostępne dla `anon` ani `authenticated`. Kontekst wiąże operację z transakcją, backend PID, rodziną i `auth.uid()`, dzięki czemu nie może służyć do globalnego wyłączania triggerów. Wszystkie rekordy otrzymują docelowe `family_id`; dane Auth, członkostwa, urządzenia, sekrety, powiadomienia i `notification_preferences` pozostają poza zakresem.
+
 - Eksport jest dostępny wyłącznie dla aktywnego ownera lub administratora wskazanej rodziny; kontrolę wykonuje baza, nie frontend.
 - RPC używa `SECURITY DEFINER`, pustego `search_path`, jawnie kwalifikowanych tabel i filtra `target_family_id` dla każdej relacji.
 - Klient otrzymuje wyłącznie `EXECUTE`; migracja nie dodaje bezpośrednich grantów do tabel.
