@@ -1,0 +1,6 @@
+import{useMemo,useRef,useState}from'react'
+import{createBackupRepository}from'../api/backup-repository'
+import{backupFilename,csvExport,csvFilename,csvModule,jsonExport}from'../backup-utils'
+import{saveExportFile}from'../export-file'
+import type{BackupModule,CsvDataset}from'../types'
+export function useBackupExport(familyId:string,familyName:string){const repo=useMemo(()=>createBackupRepository(),[]);const inFlight=useRef(false);const[busy,setBusy]=useState(false);const[message,setMessage]=useState<string|null>(null);async function run(action:()=>Promise<void>){if(inFlight.current)return;inFlight.current=true;setBusy(true);setMessage(null);try{await action();setMessage('Eksport został przygotowany.')}catch(error){setMessage(error instanceof Error?error.message:'Nie udało się przygotować eksportu.')}finally{inFlight.current=false;setBusy(false)}}return{busy,message,exportJson:(modules:BackupModule[])=>run(async()=>{const payload=await repo.exportFamily(familyId,modules);await saveExportFile({filename:backupFilename(familyName),content:jsonExport(payload),mimeType:'application/json;charset=utf-8'})}),exportCsv:(dataset:CsvDataset)=>run(async()=>{const payload=await repo.exportFamily(familyId,[csvModule(dataset)]);await saveExportFile({filename:csvFilename(dataset,familyName),content:csvExport(payload,dataset),mimeType:'text/csv;charset=utf-8'})})}}

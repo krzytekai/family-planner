@@ -70,3 +70,14 @@ RLS dopuszcza dane finansowe wyłącznie dla aktywnych ról `owner`, `admin` i `
 - Odbiorcą przypomnienia jest wyłącznie `auth.uid()` zapisujący definicję. Klient nie może ustawić backendowego `reminder_kind` ani offsetu na dowolnym reminderze.
 - Płatność blokuje wiersz charge przed utworzeniem lub aktualizacją powiązanej transakcji, co chroni przed duplikacją przy retry.
 - Archiwizacja i przywracanie wymagają aktywnej roli owner/admin/adult i przechodzą przez RPC. Trwałe usunięcie wymaga owner/admin, atomowo usuwa dane zależne nieruchomości i celowo zachowuje niezależne transakcje budżetowe.
+
+## Backup i eksport danych
+
+- Eksport jest dostępny wyłącznie dla aktywnego ownera lub administratora wskazanej rodziny; kontrolę wykonuje baza, nie frontend.
+- RPC używa `SECURITY DEFINER`, pustego `search_path`, jawnie kwalifikowanych tabel i filtra `target_family_id` dla każdej relacji.
+- Klient otrzymuje wyłącznie `EXECUTE`; migracja nie dodaje bezpośrednich grantów do tabel.
+- Moduły są wybierane z zamkniętej allowlisty. Nazwa modułu nigdy nie jest używana jako dynamiczna nazwa tabeli.
+- Nie są eksportowane e-maile, Auth, hasła, sesje, JWT, tokeny urządzeń, dane FCM, sekrety instalacji, Vault, powiadomienia ani administracja platformy.
+- Przypomnienia i preferencje są ograniczone do `auth.uid()`, więc eksport nie omija ich dotychczasowej prywatności.
+- Audyt zawiera tylko format, wersję, moduły i liczniki rekordów. Nie zapisuje treści eksportu ani danych opisowych.
+- Pliki są zapisywane lokalnie lub w prywatnym cache Androida; ich treść nie jest przechowywana w Web Storage.

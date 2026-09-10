@@ -104,6 +104,10 @@ Pola `purchased_by` i `purchased_at` są zarządzane przez `private.prepare_shop
 
 Powiadomienie o przypisaniu zadania tworzy trigger bazy. Preferencja typu zdarzenia decyduje o utworzeniu kanonicznego `notification`; kanały `in_app_enabled` i `push_enabled` są rozdzielone. Terminy obsługuje wyłącznie `private.process_due_reminders(batch_size)`: funkcja wybiera rekordy `pending` z `FOR UPDATE SKIP LOCKED`, ponownie sprawdza aktywne członkostwo, deduplikuje wpis skrzynki i kończy przypomnienie jako `fired` albo `cancelled`. Funkcji nie udostępniono rolom `anon` ani `authenticated`; scheduler musi wywoływać ją w zaufanym kontekście bazy, np. co minutę przez Supabase Cron/pg_cron. Frontend nie używa timerów do dostarczania przypomnień.
 
+## Backup i eksport
+
+Migracja 0022 dodaje wyłącznie wąskie RPC `public.export_family_data(target_family_id, selected_modules)`. Funkcja nie tworzy tabeli plików i nie przechowuje kopii w bazie. Aktywny owner/admin otrzymuje wersjonowany JSON z jawnie dozwolonych modułów. Dane są agregowane w jednym głównym zapytaniu, każde źródło ma filtr `family_id`, a przypomnienia i preferencje dodatkowo filtr `auth.uid()`. Wynik większy niż 8 MiB jest odrzucany bez obcinania. Po zbudowaniu wyniku funkcja zapisuje bezpieczne zdarzenie `family.backup.exported` bez treści kopii.
+
 ## Budget
 
 `budget_transactions` przechowuje przychody i wydatki, `budget_plans` miesięczne limity, `budget_settlements` transfery wyrównujące, a `budget_settlement_members` bieżącą konfigurację. `budget_expense_participants` jest niezmiennym snapshotem składu konkretnego wspólnego wydatku i ma tenant-safe composite FK. `paid_by` wskazuje płatnika, a `created_by` autora wpisu.

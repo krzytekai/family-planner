@@ -1,0 +1,5 @@
+export const backupModules=['family','members','tasks','calendar','shopping','budget','fixedCharges','reminders']as const
+export type BackupModule=typeof backupModules[number]
+export type CsvDataset='tasks'|'calendarEvents'|'shoppingItems'|'budgetTransactions'|'fixedCharges'
+export type BackupRecord=Record<string,unknown>
+export interface BackupPayload{format:'family-planner-backup';backupVersion:1;schemaVersion:1;createdAt:string;scope:{familyId:string;exportedBy:string;modules:BackupModule[]};family:{id:string;name:string};modules:{family?:BackupRecord;members?:BackupRecord[];tasks?:{items:BackupRecord[];recurrenceSeries:BackupRecord[]};calendar?:{events:BackupRecord[]};shopping?:{lists:BackupRecord[];items:BackupRecord[]};budget?:{transactions:BackupRecord[];expenseParticipants:BackupRecord[];settlementMembers:BackupRecord[];settlements:BackupRecord[];plans:BackupRecord[]};fixedCharges?:{properties:BackupRecord[];units:BackupRecord[];definitions:BackupRecord[];scheduleDates:BackupRecord[];reminderRules:BackupRecord[];charges:BackupRecord[]};reminders?:{scope:'current_user';items:BackupRecord[];preferences:BackupRecord[]}};recordCounts:BackupRecord}

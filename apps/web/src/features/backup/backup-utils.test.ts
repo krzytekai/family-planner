@@ -1,0 +1,12 @@
+import{describe,expect,it}from'vitest'
+import{backupFilename,csvExport,csvFilename,jsonExport,localFilenameTimestamp,sanitizeFamilySlug,selectedModules}from'./backup-utils'
+import type{BackupPayload}from'./types'
+const payload:BackupPayload={format:'family-planner-backup',backupVersion:1,schemaVersion:1,createdAt:'2026-09-10T10:00:00Z',scope:{familyId:'family-1',exportedBy:'user-1',modules:['tasks','fixedCharges']},family:{id:'family-1',name:'Żółta Łódź'},modules:{tasks:{items:[{id:'1',title:'Zażółć; "gęślą"\n=SUM(A1:A2)',status:'todo'}],recurrenceSeries:[]},fixedCharges:{properties:[],units:[],definitions:[],scheduleDates:[],reminderRules:[],charges:[{id:'c1',budgetTransactionId:'b1',notes:'linia 1\nlinia 2'}]}},recordCounts:{tasks:{items:1},fixedCharges:{charges:1}}}
+describe('backup export utilities',()=>{
+ it('sanitizes Polish family names and filesystem characters with a bounded fallback',()=>{expect(sanitizeFamilySlug('Żółta Łódź / Dom:*?')).toBe('zolta-lodz-dom');expect(sanitizeFamilySlug('***')).toBe('rodzina');expect(sanitizeFamilySlug('a'.repeat(80))).toHaveLength(48)})
+ it('uses device-local wall-clock components in filenames',()=>{const date=new Date(2026,8,7,6,5);expect(localFilenameTimestamp(date)).toBe('2026-09-07_06-05');expect(backupFilename('Żółta Łódź',date)).toBe('planer-rodzinny_zolta-lodz_2026-09-07_06-05.json');expect(csvFilename('tasks','Żółta Łódź',date)).toContain('tasks_zolta-lodz_2026-09-07_06-05.csv')})
+ it('keeps JSON version markers, relational identifiers, notes and Polish Unicode',()=>{const output=jsonExport(payload);expect(output).toContain('family-planner-backup');expect(output).toContain('"backupVersion": 1');expect(output).toContain('Żółta Łódź');expect(output).toContain('budgetTransactionId');expect(output).toContain('linia 1\\nlinia 2')})
+ it('generates UTF-8 BOM CSV with stable headers and escaped quotes newlines and separators',()=>{const output=csvExport(payload,'tasks');expect(output.startsWith('\uFEFF')).toBe(true);expect(output).toContain('"Tytuł"');expect(output).toContain('"Zażółć; ""gęślą""\n=SUM(A1:A2)"')})
+ it.each(['=1+1','+SUM(A:A)','-2+3','@cmd'])('neutralizes spreadsheet formula prefix %s',value=>{const copy=structuredClone(payload);copy.modules.tasks!.items=[{id:'1',title:value}];expect(csvExport(copy,'tasks')).toContain(`"'${value}"`)})
+ it('deduplicates selected modules in deterministic allowlist order',()=>{expect(selectedModules(['budget','tasks','budget','family'])).toEqual(['family','tasks','budget'])})
+})
