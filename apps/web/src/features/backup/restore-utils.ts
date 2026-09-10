@@ -27,4 +27,15 @@ export function sourceUsers(backup:BackupPayload,modules:RestoreModule[]){const 
  if(selected.has('reminders'))add(found,backup.scope.exportedBy)
  return[...found].sort()
 }
+export function requiredSourceUsers(backup:BackupPayload,modules:RestoreModule[]){const found=new Set<string>();const selected=new Set(modules);const m=backup.modules
+ if(selected.has('tasks')){rows(m.tasks?.items).forEach(x=>add(found,x.createdBy));rows(m.tasks?.recurrenceSeries).forEach(x=>add(found,x.createdBy))}
+ if(selected.has('calendar'))rows(m.calendar?.events).forEach(x=>add(found,x.createdBy))
+ if(selected.has('shopping')){rows(m.shopping?.lists).forEach(x=>add(found,x.createdBy));rows(m.shopping?.items).forEach(x=>add(found,x.createdBy))}
+ if(selected.has('budget')){for(const key of['transactions','settlementMembers','settlements','plans']as const)rows(m.budget?.[key]).forEach(x=>{for(const field of['createdBy','paidBy','userId','fromUserId','toUserId'])add(found,x[field])});rows(m.budget?.expenseParticipants).forEach(x=>add(found,x.userId))}
+ if(selected.has('fixedCharges')){for(const key of['properties','units','definitions']as const)rows(m.fixedCharges?.[key]).forEach(x=>add(found,x.createdBy));rows(m.fixedCharges?.reminderRules).forEach(x=>add(found,x.recipientUserId))}
+ if(selected.has('reminders'))add(found,backup.scope.exportedBy)
+ return found
+}
+const restoreErrorMessages:Record<string,string>={invalid_task_recurrence_series:'Nie można przywrócić serii zadań cyklicznych. Sprawdź mapowanie jej autora oraz dane harmonogramu.'}
+export function restoreErrorMessage(code:string){return restoreErrorMessages[code]??`Nie można zweryfikować części kopii (${code}).`}
 export function sourceUserLabel(backup:BackupPayload,id:string){const member=backup.modules.members?.find(row=>row.userId===id);return typeof member?.displayName==='string'?member.displayName:`${id.slice(0,8)}…`}
