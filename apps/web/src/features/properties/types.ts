@@ -12,4 +12,5 @@ export interface UnitInput{familyId:string;propertyId:string;name:string;type:Pr
 export interface DefinitionInput{familyId:string;propertyId:string;unitId:string|null;name:string;category:ChargeCategory;amountMode:AmountMode;plannedAmountCents:number|null;recurrence:ChargeRecurrence;timezone:string;startDate:string;dueDay:number|null;intervalMonths:number|null;recurrenceMonth:number|null;selectedDates:Array<{month:number|undefined;day:number|undefined}>;reminderOffsets:number[];autoGenerate:boolean;budgetSyncMode:'manual'|'automatic'}
 export interface DefinitionUpdateInput{familyId:string;definitionId:string;propertyId:string;name:string;category:ChargeCategory;amountMode:AmountMode;plannedAmountCents:number|null;budgetSyncMode:'manual'|'automatic'}
 export interface PaymentInput{familyId:string;chargeId:string;amountCents:number;paidAt:string;notes:string;syncBudget:boolean}
+export interface ChargeUpdateInput{familyId:string;chargeId:string;plannedAmountCents:number|null;status:ChargeStatus;actualAmountCents:number|null;paidAt:string|null;notes:string;syncBudget:boolean}
 export type PropertiesTab='overview'|'year'|'history'|'settings'
