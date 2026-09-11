@@ -1,4 +1,4 @@
-import type{ChargeDefinition,PropertyCharge}from'./types'
+import type{ChargeDefinition,Property,PropertyCharge}from'./types'
 export const isOverdue=(charge:Pick<PropertyCharge,'status'|'dueDate'>,today=new Date().toISOString().slice(0,10))=>charge.status==='pending'&&charge.dueDate<today
 export const effectiveAmount=(charge:PropertyCharge)=>charge.actualAmountCents??charge.plannedAmountCents
 export const formatPropertyMoney=(cents:number|null,currency='PLN')=>cents===null?'—':new Intl.NumberFormat('pl-PL',{style:'currency',currency}).format(cents/100)
@@ -15,4 +15,24 @@ export const canAccessProperties=(role:string)=>role==='owner'||role==='admin'||
 export function chargesForProperty(charges:PropertyCharge[],propertyId:string){return propertyId==='all'?charges:charges.filter(charge=>charge.propertyId===propertyId)}
 export function definitionsForProperty(definitions:ChargeDefinition[],charges:PropertyCharge[],propertyId:string){
   return definitions.filter(definition=>definition.active&&(propertyId==='all'||definition.propertyId===propertyId||charges.some(charge=>charge.definitionId===definition.id&&charge.propertyId===propertyId)))
+}
+
+export interface ChargePropertyGroup<T>{propertyId:string;propertyName:string;items:T[]}
+const propertyCollator=new Intl.Collator('pl-PL',{sensitivity:'base'})
+
+export function groupItemsByChargeProperty<T>(items:T[],properties:Array<Pick<Property,'id'|'name'>>,getPropertyId:(item:T)=>string,getItemName:(item:T)=>string,selectedProperty='all',secondaryCompare?:(a:T,b:T)=>number):ChargePropertyGroup<T>[] {
+  const propertyNames=new Map(properties.map(property=>[property.id,property.name]))
+  const groups=new Map<string,T[]>()
+  for(const item of items){
+    const propertyId=getPropertyId(item)
+    if(selectedProperty!=='all'&&propertyId!==selectedProperty)continue
+    const group=groups.get(propertyId)??[]
+    group.push(item)
+    groups.set(propertyId,group)
+  }
+  return [...groups.entries()].map(([propertyId,groupItems])=>({
+    propertyId,
+    propertyName:propertyNames.get(propertyId)??'Nieznana grupa opłat',
+    items:groupItems.sort((a,b)=>propertyCollator.compare(getItemName(a),getItemName(b))||(secondaryCompare?.(a,b)??0)),
+  })).sort((a,b)=>propertyCollator.compare(a.propertyName,b.propertyName))
 }

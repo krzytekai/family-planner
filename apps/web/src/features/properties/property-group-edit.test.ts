@@ -66,7 +66,8 @@ describe('charge definition group edit contract', () => {
   })
   it('uses snapshot filtering in the year view as well as individual cards', () => {
     expect(view).toContain('chargesForProperty(data.activeCharges,selectedProperty)')
-    expect(view).toContain('chargeForMonth(yearCharges,definition,year,index+1)')
+    expect(view).toContain('yearCharges.filter(charge=>charge.propertyId===group.propertyId)')
+    expect(view).toContain('chargeForMonth(groupCharges,item.definition,year,index+1)')
     expect(view).toContain('propertyNames.get(charge.propertyId)')
   })
 })
