@@ -16,7 +16,7 @@ const hook = read('features/notifications/hooks/useReminders.ts')
 const migration = readFileSync(resolve(process.cwd(), '..', '..', 'database', 'migrations', '0011_recurring_tasks.sql'), 'utf8')
 const task: Task = { id: 't1', familyId: 'f1', title: 'Test przypomnienia', description: null, status: 'todo', priority: 'normal', assignedTo: { id: 'u1', displayName: 'Krzysiek' }, dueAt: '2026-09-14T12:53:00Z', createdBy: { id: 'u1', displayName: 'Krzysiek' }, createdAt: '2026-09-11T10:00:00Z', updatedAt: '2026-09-11T10:00:00Z', completedAt: null, recurrence: null, assigneeReminderOffsetMinutes: 30 }
 const assigneeReminder: Reminder = { id: 'r1', familyId: 'f1', sourceType: 'task', sourceId: 't1', title: null, remindAt: '2026-09-14T12:23:00Z', timezone: 'Europe/Warsaw', status: 'pending', kind: 'task_assignee', assigneeReminderOffsetMinutes: 30 }
-const renderCard = (reminder?: Reminder) => renderToStaticMarkup(createElement(TaskCard, { task, currentUserId: 'u1', currentUserRole: 'adult', updating: false, reminder, onToggle: () => {}, onDelete: () => {}, onReminder: () => {}, onEdit: () => {}, onStopRecurrence: () => {} }))
+const renderCard = (reminder?: Reminder, taskOverrides: Partial<Task> = {}) => renderToStaticMarkup(createElement(TaskCard, { task: { ...task, ...taskOverrides }, currentUserId: 'u1', currentUserRole: 'adult', updating: false, reminder, onToggle: () => {}, onDelete: () => {}, onReminder: () => {}, onEdit: () => {}, onStopRecurrence: () => {} }))
 
 describe('task reminder UX', () => {
   it('shows the active reminder in green with its date instead of a second create action', () => {
@@ -66,12 +66,21 @@ describe('task reminder UX', () => {
     expect(hook).toContain('error, refresh, save, remove')
   })
 
-  it('keeps mobile actions in one stable row and truncates only a long reminder label', () => {
-    expect(card).toContain('flex flex-nowrap items-center gap-2')
-    expect(card).toContain('min-h-11 min-w-0 flex-1')
-    expect(card).toContain('<span className="min-w-0 truncate">')
-    expect(card).toContain('shrink-0 items-center justify-center gap-2 whitespace-nowrap')
+  it('uses a stable two-row mobile grid and keeps the full reminder label', () => {
+    expect(card).toContain('grid grid-cols-[minmax(0,1fr)_2.75rem] items-center gap-2 sm:flex sm:flex-nowrap')
+    expect(card).toContain('min-h-11 min-w-0 w-full')
+    expect(card).toContain('<span className="whitespace-nowrap">')
+    expect(card).not.toContain('min-w-0 truncate')
+    expect(card).toContain('col-span-2 inline-flex min-h-11 w-full')
     expect(card).toContain('title={reminder ? formatNotificationDate(reminder.remindAt) : undefined}')
+  })
+
+  it('renders complete Polish reminder and completion labels in both task states', () => {
+    const active = renderCard({ ...assigneeReminder, remindAt: '2026-11-17T17:00:00Z' })
+    expect(active).toContain('17 lis 2026, 18:00')
+    expect(active).toContain('Oznacz jako wykonane')
+    expect(renderCard()).toContain('>Przypomnij</span>')
+    expect(renderCard(undefined, { status: 'done', completedAt: '2026-09-14T13:00:00Z' })).toContain('Cofnij wykonanie')
   })
 
   it('keeps icon actions and every primary action at least 44 pixels high', () => {
