@@ -21,5 +21,6 @@ export function createPropertyRepository(){return{
  async archiveProperty(familyId:string,id:string){const{error}=await db().rpc('archive_property',{target_family_id:familyId,target_property_id:id});if(error)throw new Error(error.message)},
  async restoreProperty(familyId:string,id:string){const{error}=await db().rpc('restore_property',{target_family_id:familyId,target_property_id:id});if(error)throw new Error(error.message)},
  async deleteProperty(familyId:string,id:string){const{error}=await db().rpc('delete_property_permanently',{target_family_id:familyId,target_property_id:id});if(error)throw new Error(error.message)},
+ async deleteDefinition(familyId:string,id:string){const{error}=await db().rpc('delete_property_charge_definition_permanently',{target_family_id:familyId,target_definition_id:id});if(error)throw new Error('Nie udało się trwale usunąć opłaty cyklicznej.')},
  async setDefinitionActive(familyId:string,id:string,active:boolean){const{error}=await db().rpc('set_property_charge_definition_active',{target_family_id:familyId,target_definition_id:id,next_active:active});if(error)throw new Error(error.message)}
 }}
