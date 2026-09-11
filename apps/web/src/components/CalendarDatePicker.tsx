@@ -32,11 +32,16 @@ export function CalendarDatePicker({ label, value, onChange, disabled = false, r
         <button type="button" style={{ minHeight: 44 }} disabled={disabled} aria-label="Następny miesiąc" className={`${control} w-11`} onClick={() => setMonth(current => new Date(current.getFullYear(), current.getMonth() + 1, 1))}><ChevronRight className="h-4 w-4" /></button>
       </div>
       <div className="grid grid-cols-7 text-center">
-        {['Pn', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd'].map(day => <span key={day} className="py-2 text-[11px] text-brand-muted">{day}</span>)}
+        {['Pn', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd'].map((day,index) => <span key={day} data-weekend={index>=5||undefined} className={`py-2 text-[11px] ${index>=5?'text-brand-gold/70':'text-brand-muted'}`}>{day}</span>)}
         {getMonthGrid(month).map(day => {
           const key = toDateKey(day)
+          const selected = value === key
+          const current = day.getMonth() === month.getMonth()
+          const isToday = today === key
+          const weekend = day.getDay() === 0 || day.getDay() === 6
+          const tone = selected ? 'bg-[#ffd84d] font-semibold text-black' : isToday ? 'border-brand-gold/60 bg-brand-gold/[.07] text-brand-gold hover:bg-brand-gold/10' : !current ? 'text-brand-muted hover:bg-white/5' : weekend ? 'text-brand-gold/70 hover:bg-brand-gold/[.06]' : 'text-brand-text hover:bg-white/10'
           return <button key={key} type="button" style={{ minHeight: 44 }} disabled={disabled} aria-label={new Intl.DateTimeFormat('pl-PL', { dateStyle: 'full' }).format(day)} aria-pressed={value === key} aria-current={today === key ? 'date' : undefined}
-            className={`${control} ${value === key ? 'bg-[#ffd84d] text-black' : day.getMonth() === month.getMonth() ? 'text-brand-text hover:bg-white/10' : 'text-brand-muted hover:bg-white/5'}`}
+            data-weekend={weekend||undefined} data-today={isToday||undefined} className={`${control} ${tone} ${selected&&isToday?'outline outline-2 outline-brand-green outline-offset-[-3px]':''}`}
             onClick={() => { onChange(key); setOpen(false) }}>{day.getDate()}</button>
         })}
       </div>

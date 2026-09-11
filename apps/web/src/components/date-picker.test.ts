@@ -36,6 +36,19 @@ describe('shared task and event calendar/time picker', () => {
     expect(picker).toContain('aria-pressed={value === key}')
     expect(picker).toContain('style={{ minHeight: 44 }}')
   })
+  it('distinguishes today and weekends without reducing their touch targets', () => {
+    expect(picker).toContain('data-weekend={index>=5||undefined}')
+    expect(picker).toContain('day.getDay() === 0 || day.getDay() === 6')
+    expect(picker).toContain('data-weekend={weekend||undefined}')
+    expect(picker).toContain('data-today={isToday||undefined}')
+    expect(picker).toContain('border-brand-gold/60 bg-brand-gold/[.07]')
+    expect(picker).toContain('text-brand-gold/70')
+  })
+  it('keeps selection dominant while marking a selected today date separately', () => {
+    expect(picker).toContain("selected ? 'bg-[#ffd84d] font-semibold text-black'")
+    expect(picker).toContain("selected&&isToday?'outline outline-2 outline-brand-green")
+    expect(picker).toContain('onClick={() => { onChange(key); setOpen(false) }}')
+  })
   it('renders a readable date trigger rather than raw ISO', () => {
     const html = renderToStaticMarkup(createElement(CalendarDatePicker, { label: 'Termin', value: '2026-09-04', onChange: () => {} }))
     expect(html).toContain('4 wrz 2026')
