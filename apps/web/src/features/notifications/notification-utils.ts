@@ -53,6 +53,13 @@ export function reminderForSource(reminders: Reminder[], sourceType: Reminder['s
   return reminders.find((item) => item.status === 'pending' && item.sourceType === sourceType && item.sourceId === sourceId && item.kind === kind)
 }
 
+export function visibleTaskReminder(reminders: Reminder[], taskId: string, currentUserId: string, assignedUserId: string | null) {
+  return reminders
+    .filter((item) => item.status === 'pending' && item.sourceType === 'task' && item.sourceId === taskId)
+    .filter((item) => item.kind === 'personal' || (item.kind === 'task_assignee' && assignedUserId === currentUserId))
+    .sort((left, right) => new Date(left.remindAt).getTime() - new Date(right.remindAt).getTime() || left.kind.localeCompare(right.kind))[0]
+}
+
 export function formatNotificationDate(value: string) {
   return new Intl.DateTimeFormat('pl-PL', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
 }

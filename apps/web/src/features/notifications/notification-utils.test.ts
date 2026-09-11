@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groupNotifications, isNotificationTypeEnabled, isReminderDue, notificationDestination, reminderForSource, reminderProcessingDecision, shouldNotifyAssignment, unreadNotificationCount, visibleNotifications } from './notification-utils'
+import { groupNotifications, isNotificationTypeEnabled, isReminderDue, notificationDestination, reminderForSource, reminderProcessingDecision, shouldNotifyAssignment, unreadNotificationCount, visibleNotifications, visibleTaskReminder } from './notification-utils'
 import { defaultNotificationPreferences, type AppNotification, type Reminder } from './types'
 
 const notification = (overrides: Partial<AppNotification> = {}): AppNotification => ({ id: 'n1', familyId: 'f1', recipientUserId: 'u1', type: 'system', title: 'T', body: null, sourceType: null, sourceId: null, readAt: null, dismissedAt: null, createdAt: '2026-08-18T08:00:00Z', ...overrides })
@@ -19,6 +19,20 @@ describe('notification utilities', () => {
     expect([groups.new.length, groups.today.length, groups.earlier.length]).toEqual([1, 1, 1])
   })
   it('selects a pending reminder for a source', () => expect(reminderForSource([reminder()], 'task', 't1')?.id).toBe('r1'))
+  it('shows the real assignee reminder for a task assigned to the current user', () => {
+    const result = visibleTaskReminder([reminder({ kind: 'task_assignee', remindAt: '2026-09-14T12:23:00Z' })], 't1', 'u1', 'u1')
+    expect(result?.remindAt).toBe('2026-09-14T12:23:00Z')
+  })
+  it('does not expose another user assignee reminder as the current user reminder', () => {
+    expect(visibleTaskReminder([reminder({ kind: 'task_assignee' })], 't1', 'u1', 'u2')).toBeUndefined()
+  })
+  it('deterministically selects the nearest reminder when personal and assignee reminders coexist', () => {
+    const result = visibleTaskReminder([
+      reminder({ id: 'personal', remindAt: '2026-09-14T12:30:00Z' }),
+      reminder({ id: 'assignee', kind: 'task_assignee', remindAt: '2026-09-14T12:23:00Z' }),
+    ], 't1', 'u1', 'u1')
+    expect(result?.id).toBe('assignee')
+  })
 })
 
 describe('backend notification decisions', () => {
