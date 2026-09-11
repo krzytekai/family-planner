@@ -30,10 +30,12 @@ describe('task reminder UX', () => {
     expect(html).toContain('text-brand-green')
     expect(html).toContain('14:23')
     expect(html).not.toContain('>Przypomnij</button>')
+    expect(html).toContain('Edytuj zadanie: Test przypomnienia')
+    expect(html).toContain('Oznacz jako wykonane')
   })
 
   it('shows the neutral create action only when no visible reminder exists', () => {
-    expect(renderCard()).toContain('>Przypomnij</button>')
+    expect(renderCard()).toContain('>Przypomnij</span>')
   })
 
   it('edits the existing personal reminder and allows it to be removed', () => {
@@ -62,5 +64,19 @@ describe('task reminder UX', () => {
     expect(app).toContain('await taskState.createTask(input); await reminderState.refresh()')
     expect(app).toContain('await taskState.updateTask(input); await reminderState.refresh()')
     expect(hook).toContain('error, refresh, save, remove')
+  })
+
+  it('keeps mobile actions in one stable row and truncates only a long reminder label', () => {
+    expect(card).toContain('flex flex-nowrap items-center gap-2')
+    expect(card).toContain('min-h-11 min-w-0 flex-1')
+    expect(card).toContain('<span className="min-w-0 truncate">')
+    expect(card).toContain('shrink-0 items-center justify-center gap-2 whitespace-nowrap')
+    expect(card).toContain('title={reminder ? formatNotificationDate(reminder.remindAt) : undefined}')
+  })
+
+  it('keeps icon actions and every primary action at least 44 pixels high', () => {
+    expect(card).toContain('className="grid h-11 w-11 shrink-0 place-items-center rounded-xl')
+    expect(card).toContain('className="grid h-11 w-11 shrink-0 place-items-center rounded-lg')
+    expect(card.match(/min-h-11/g)?.length).toBeGreaterThanOrEqual(2)
   })
 })
