@@ -2,7 +2,7 @@ export type PropertyUnitType='apartment'|'garage'|'parking'|'commercial'|'land'|
 export type ChargeCategory='rent'|'electricity'|'gas'|'water'|'internet'|'tax'|'insurance'|'parking'|'service'|'other'
 export type AmountMode='fixed'|'variable'|'optional'
 export type ChargeRecurrence='one_time'|'monthly'|'interval_months'|'yearly'|'selected_dates'
-export type ChargeStatus='pending'|'paid'|'cancelled'
+export type ChargeStatus='pending'|'paid'|'cancelled'|'skipped'
 export interface Property{id:string;familyId:string;name:string;address:string|null;description:string|null;active:boolean}
 export interface PropertyUnit{id:string;familyId:string;propertyId:string;name:string;type:PropertyUnitType;active:boolean}
 export interface ChargeDefinition{id:string;familyId:string;propertyId:string;unitId:string|null;name:string;category:ChargeCategory;amountMode:AmountMode;plannedAmountCents:number|null;currency:string;recurrence:ChargeRecurrence;timezone:string;startDate:string;dueDay:number|null;intervalMonths:number|null;recurrenceMonth:number|null;active:boolean;autoGenerate:boolean;budgetSyncMode:'manual'|'automatic'}
