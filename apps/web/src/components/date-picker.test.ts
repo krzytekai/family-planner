@@ -7,6 +7,7 @@ import { getMonthGrid, toDateKey } from '../features/calendar/calendar-utils'
 import { CalendarDatePicker } from './CalendarDatePicker'
 import { DateTimePicker } from './DateTimePicker'
 import { LocalTimePicker } from './LocalTimePicker'
+import { formatTimeInput, isValidTimeInput } from './local-time-utils'
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), 'src', path), 'utf8')
 const picker = read('components/CalendarDatePicker.tsx')
@@ -55,11 +56,19 @@ describe('shared task and event calendar/time picker', () => {
     expect(html).toContain('aria-expanded="false"')
     expect(html).not.toContain('2026-09-04')
   })
-  it('allows hours and minutes with native minute precision', () => {
+  it('uses a numeric keyboard-friendly text field instead of Android WebView native time input', () => {
     const html = renderToStaticMarkup(createElement(LocalTimePicker, { label: 'Godzina', value: '16:30', onChange: () => {} }))
-    expect(html).toContain('type="time"')
-    expect(html).toContain('step="60"')
+    expect(html).toContain('type="text"')
+    expect(html).toContain('inputMode="numeric"')
     expect(html).toContain('value="16:30"')
+    expect(html).not.toContain('type="time"')
+  })
+  it.each([['0930','09:30'],['1430','14:30'],['0000','00:00'],['2359','23:59']])('formats keyboard digits %s as %s', (input, expected) => {
+    expect(formatTimeInput(input)).toBe(expected)
+    expect(isValidTimeInput(expected)).toBe(true)
+  })
+  it.each(['24:00','12:60','25:80','29:00','12:99'])('rejects invalid local time %s', value => {
+    expect(isValidTimeInput(value)).toBe(false)
   })
   it('preserves the other half when date or time changes', () => {
     expect(datetime).toContain('`${nextDate}T${time}`')
