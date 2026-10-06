@@ -20,7 +20,7 @@ function add(set:Set<string>,value:unknown){if(typeof value==='string'&&uuid.tes
 function rows(value:unknown){return Array.isArray(value)?value as BackupRecord[]:[]}
 export function sourceUsers(backup:BackupPayload,modules:RestoreModule[]){const found=new Set<string>();const selected=new Set(modules);const m=backup.modules
  if(selected.has('tasks')){rows(m.tasks?.items).forEach(x=>{add(found,x.createdBy);add(found,x.assignedTo)});rows(m.tasks?.recurrenceSeries).forEach(x=>add(found,x.createdBy))}
- if(selected.has('calendar'))rows(m.calendar?.events).forEach(x=>add(found,x.createdBy))
+ if(selected.has('calendar')){rows(m.calendar?.events).forEach(x=>add(found,x.createdBy));rows(m.calendar?.recurrenceSeries).forEach(x=>add(found,x.createdBy));rows(m.calendar?.exclusions).forEach(x=>add(found,x.excludedBy))}
  if(selected.has('shopping')){rows(m.shopping?.lists).forEach(x=>add(found,x.createdBy));rows(m.shopping?.items).forEach(x=>{add(found,x.createdBy);add(found,x.purchasedBy)})}
  if(selected.has('budget')){for(const key of['transactions','expenseParticipants','settlementMembers','settlements','plans']as const)rows(m.budget?.[key]).forEach(x=>{for(const field of['createdBy','paidBy','userId','fromUserId','toUserId'])add(found,x[field])})}
  if(selected.has('fixedCharges')){for(const key of['properties','units','definitions','reminderRules']as const)rows(m.fixedCharges?.[key]).forEach(x=>{add(found,x.createdBy);add(found,x.recipientUserId)})}
@@ -29,7 +29,7 @@ export function sourceUsers(backup:BackupPayload,modules:RestoreModule[]){const 
 }
 export function requiredSourceUsers(backup:BackupPayload,modules:RestoreModule[]){const found=new Set<string>();const selected=new Set(modules);const m=backup.modules
  if(selected.has('tasks')){rows(m.tasks?.items).forEach(x=>add(found,x.createdBy));rows(m.tasks?.recurrenceSeries).forEach(x=>add(found,x.createdBy))}
- if(selected.has('calendar'))rows(m.calendar?.events).forEach(x=>add(found,x.createdBy))
+ if(selected.has('calendar')){rows(m.calendar?.events).forEach(x=>add(found,x.createdBy));rows(m.calendar?.recurrenceSeries).forEach(x=>add(found,x.createdBy));rows(m.calendar?.exclusions).forEach(x=>add(found,x.excludedBy))}
  if(selected.has('shopping')){rows(m.shopping?.lists).forEach(x=>add(found,x.createdBy));rows(m.shopping?.items).forEach(x=>add(found,x.createdBy))}
  if(selected.has('budget')){for(const key of['transactions','settlementMembers','settlements','plans']as const)rows(m.budget?.[key]).forEach(x=>{for(const field of['createdBy','paidBy','userId','fromUserId','toUserId'])add(found,x[field])});rows(m.budget?.expenseParticipants).forEach(x=>add(found,x.userId))}
  if(selected.has('fixedCharges')){for(const key of['properties','units','definitions']as const)rows(m.fixedCharges?.[key]).forEach(x=>add(found,x.createdBy));rows(m.fixedCharges?.reminderRules).forEach(x=>add(found,x.recipientUserId))}

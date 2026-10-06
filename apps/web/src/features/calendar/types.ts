@@ -1,4 +1,5 @@
 import type { Task } from '../tasks/types'
+import type { RecurrenceRule } from '../tasks/types'
 
 export type CalendarEventType = 'family' | 'appointment' | 'school' | 'work' | 'birthday' | 'other'
 export type CalendarFilter = 'all' | 'events' | 'tasks' | 'mine'
@@ -23,6 +24,15 @@ export interface CalendarEvent {
   createdBy: CalendarPerson
   createdAt: string
   updatedAt: string
+  recurrence?: CalendarEventRecurrence | null
+}
+
+export interface CalendarEventRecurrence {
+  seriesId: string
+  occurrenceDate: string
+  rule: RecurrenceRule
+  timezone: string
+  enabled: boolean
 }
 
 export interface CalendarEventInput {
@@ -36,6 +46,7 @@ export interface CalendarEventInput {
   endsAt: string | null
   startDate: string | null
   endDate: string | null
+  recurrence: { rule: RecurrenceRule; timezone: string } | null
 }
 
 export type CalendarItem =

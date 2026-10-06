@@ -86,7 +86,15 @@ export function useCalendar(familyId: string, rangeStart: Date, rangeEnd: Date) 
     }
   }, [calendarRepository, familyId, refresh])
 
-  return { events, tasks, loading, saving, deletingIds, error, actionError, saveEvent, deleteEvent }
+  const stopRecurrence = useCallback(async (event: CalendarEvent) => {
+    setSaving(true)
+    setActionError(null)
+    try { await calendarRepository.stopRecurrence(familyId, event.id); await refresh() }
+    catch (reason) { const message = reason instanceof Error ? reason.message : 'Nie udało się zakończyć serii.'; setActionError(message); throw new Error(message) }
+    finally { setSaving(false) }
+  }, [calendarRepository, familyId, refresh])
+
+  return { events, tasks, loading, saving, deletingIds, error, actionError, saveEvent, deleteEvent, stopRecurrence }
 }
 
 export function useUpcomingCalendarEvents(familyId: string) {

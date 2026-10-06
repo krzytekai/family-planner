@@ -1,5 +1,6 @@
 import { getSupabaseClient } from '../../../lib/supabase'
 import { addDays, eventOverlapsRange, toDateKey } from '../calendar-utils'
+import type { RecurrenceRule } from '../../tasks/types'
 import type { CalendarEvent, CalendarEventInput, CalendarEventType, CalendarPerson } from '../types'
 
 type RelatedProfile = { id: string; display_name: string } | Array<{ id: string; display_name: string }> | null
@@ -20,6 +21,9 @@ interface CalendarEventRow {
   created_at: string
   updated_at: string
   creator: RelatedProfile
+  recurrence_series_id: string | null
+  recurrence_occurrence_date: string | null
+  series: { recurrence_rule: RecurrenceRule; recurrence_timezone: string; recurrence_enabled: boolean } | Array<{ recurrence_rule: RecurrenceRule; recurrence_timezone: string; recurrence_enabled: boolean }> | null
 }
 
 export interface CalendarRepository {
@@ -27,6 +31,7 @@ export interface CalendarRepository {
   createEvent(input: CalendarEventInput): Promise<void>
   updateEvent(familyId: string, eventId: string, input: CalendarEventInput): Promise<void>
   deleteEvent(familyId: string, eventId: string): Promise<void>
+  stopRecurrence(familyId: string, eventId: string): Promise<void>
 }
 
 export function buildCalendarRangeFilters(rangeStart: Date, rangeEnd: Date) {
@@ -57,6 +62,7 @@ function profileFromRelation(value: RelatedProfile, fallbackId: string): Calenda
 }
 
 function mapEvent(row: CalendarEventRow): CalendarEvent {
+  const series = Array.isArray(row.series) ? row.series[0] : row.series
   return {
     id: row.id,
     familyId: row.family_id,
@@ -72,6 +78,13 @@ function mapEvent(row: CalendarEventRow): CalendarEvent {
     createdBy: profileFromRelation(row.creator, row.created_by),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    recurrence: row.recurrence_series_id && row.recurrence_occurrence_date && series ? {
+      seriesId: row.recurrence_series_id,
+      occurrenceDate: row.recurrence_occurrence_date,
+      rule: series.recurrence_rule,
+      timezone: series.recurrence_timezone,
+      enabled: series.recurrence_enabled,
+    } : null,
   }
 }
 
@@ -79,6 +92,8 @@ const eventSelect = `
   id, family_id, title, description, event_type, location, all_day,
   starts_at, ends_at, start_date, end_date, created_by, created_at, updated_at,
   creator:profiles!calendar_events_created_by_fkey(id, display_name)
+  ,recurrence_series_id, recurrence_occurrence_date,
+  series:calendar_event_recurrence_series!calendar_events_recurrence_series_fkey(recurrence_rule, recurrence_timezone, recurrence_enabled)
 `
 
 function eventPayload(input: CalendarEventInput) {
@@ -118,6 +133,19 @@ export function createCalendarRepository(): CalendarRepository {
     },
 
     async createEvent(input) {
+      if (input.recurrence) {
+        const { error } = await getClient().rpc('create_recurring_calendar_event', {
+          target_family_id: input.familyId,
+          event_title: input.title.trim(), event_description: input.description.trim() || null,
+          event_type_value: input.eventType, event_location: input.location.trim() || null,
+          event_all_day: input.allDay, event_starts_at: input.allDay ? null : input.startsAt,
+          event_ends_at: input.allDay ? null : input.endsAt, event_start_date: input.allDay ? input.startDate : null,
+          event_end_date: input.allDay ? input.endDate : null, recurrence_rule_value: input.recurrence.rule,
+          recurrence_timezone_value: input.recurrence.timezone,
+        })
+        if (error) throw new Error(error.message)
+        return
+      }
       const { error } = await getClient().from('calendar_events').insert({ family_id: input.familyId, ...eventPayload(input) })
       if (error) throw new Error(error.message)
     },
@@ -130,10 +158,15 @@ export function createCalendarRepository(): CalendarRepository {
     },
 
     async deleteEvent(familyId, eventId) {
-      const { data, error } = await getClient().from('calendar_events').delete()
-        .eq('family_id', familyId).eq('id', eventId).select('id').maybeSingle()
+      const { data, error } = await getClient().rpc('delete_calendar_event_occurrence', { target_family_id: familyId, target_event_id: eventId })
       if (error) throw new Error(error.message)
       if (!data) throw new Error('Nie masz uprawnień do usunięcia tego wydarzenia lub wydarzenie już nie istnieje.')
+    },
+
+    async stopRecurrence(familyId, eventId) {
+      const { data, error } = await getClient().rpc('stop_calendar_event_recurrence', { target_family_id: familyId, target_event_id: eventId })
+      if (error) throw new Error(error.message)
+      if (!data) throw new Error('Nie udało się zakończyć serii wydarzeń.')
     },
   }
 }
