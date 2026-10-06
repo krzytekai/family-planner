@@ -8,7 +8,7 @@ import type{ChargeStatus,ChargeUpdateInput,PropertyCharge}from'../types'
 const dateFormatter=new Intl.DateTimeFormat('pl-PL',{dateStyle:'long'})
 const paidFormatter=new Intl.DateTimeFormat('pl-PL',{dateStyle:'long',timeStyle:'short'})
 
-export function ChargeDetailsModal({familyId,charge,definitionName,propertyName,canSkip,saving,onSave,onClose}:{familyId:string;charge:PropertyCharge;definitionName:string;propertyName:string;canSkip:boolean;saving:boolean;onSave:(input:ChargeUpdateInput)=>Promise<void>;onClose:()=>void}){
+export function ChargeDetailsModal({familyId,charge,definitionName,propertyName,saving,onSave,onClose}:{familyId:string;charge:PropertyCharge;definitionName:string;propertyName:string;saving:boolean;onSave:(input:ChargeUpdateInput)=>Promise<void>;onClose:()=>void}){
  const[editing,setEditing]=useState(false)
  const[planned,setPlanned]=useState(charge.plannedAmountCents===null?'':(charge.plannedAmountCents/100).toFixed(2))
  const[status,setStatus]=useState<ChargeStatus>(charge.status)
@@ -18,6 +18,7 @@ export function ChargeDetailsModal({familyId,charge,definitionName,propertyName,
  const[syncBudget,setSyncBudget]=useState(false)
  const[error,setError]=useState<string|null>(null)
  const[confirmingSkipped,setConfirmingSkipped]=useState(false)
+ const canSkip=charge.status==='pending'
  useEffect(()=>{const close=(event:KeyboardEvent)=>{if(event.key==='Escape'&&!saving)onClose()};window.addEventListener('keydown',close);return()=>window.removeEventListener('keydown',close)},[onClose,saving])
  function chooseStatus(next:ChargeStatus){setStatus(next);if(next==='paid'){if(!actual&&charge.plannedAmountCents!==null)setActual((charge.plannedAmountCents/100).toFixed(2));if(!paidAt)setPaidAt(formatDateTimeLocal(new Date()))}else{setActual('');setPaidAt('')}}
  async function submit(event:FormEvent){event.preventDefault();setError(null);try{const plannedAmountCents=planned.trim()?Math.round(Number(planned.replace(',','.'))*100):null;const actualAmountCents=status==='paid'?Math.round(Number(actual.replace(',','.'))*100):null;if(plannedAmountCents!==null&&(!Number.isFinite(plannedAmountCents)||plannedAmountCents<=0))throw new Error('Kwota planowana musi być większa od zera.');if(status==='paid'&&(!actualAmountCents||actualAmountCents<=0||!paidAt))throw new Error('Podaj faktyczną kwotę i datę zapłaty.');await onSave({familyId,chargeId:charge.id,plannedAmountCents,status,actualAmountCents,paidAt:status==='paid'?parseDateTimeLocal(paidAt).toISOString():null,notes,syncBudget});setEditing(false)}catch(reason){setError(reason instanceof Error?reason.message:'Nie udało się zapisać opłaty.')}}
