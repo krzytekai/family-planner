@@ -1,6 +1,19 @@
 import type { FamilyRole } from '../../types/domain'
 import type { RecurrenceRule, RecurrenceType, Task, TaskFilter, TaskStats, TaskStatus } from './types'
 
+export const recurrenceIntervalError = 'Podaj poprawną wartość pola „Co ile okresów” (1–1000).'
+
+export function normalizeRecurrenceIntervalInput(value: string): string {
+  const digits = value.replace(/\D/g, '')
+  return digits.replace(/^0+(?=\d)/, '')
+}
+
+export function parseRecurrenceInterval(value: string): number | null {
+  if (!/^\d+$/.test(value)) return null
+  const interval = Number(value)
+  return Number.isInteger(interval) && interval >= 1 && interval <= 1000 ? interval : null
+}
+
 export function isDueToday(dueAt: string | null, now = new Date()): boolean {
   if (!dueAt) return false
   const dueDate = new Date(dueAt)
