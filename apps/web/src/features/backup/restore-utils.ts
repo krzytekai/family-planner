@@ -36,6 +36,6 @@ export function requiredSourceUsers(backup:BackupPayload,modules:RestoreModule[]
  if(selected.has('reminders'))add(found,backup.scope.exportedBy)
  return found
 }
-const restoreErrorMessages:Record<string,string>={invalid_task_recurrence_series:'Nie można przywrócić serii zadań cyklicznych. Sprawdź mapowanie jej autora oraz dane harmonogramu.'}
+const restoreErrorMessages:Record<string,string>={invalid_task_recurrence_series:'Nie można przywrócić serii zadań cyklicznych. Sprawdź mapowanie jej autora oraz dane harmonogramu.',invalid_actual_settlement_date:'Kopia zawiera nieprawidłową rzeczywistą datę rozliczenia budżetowego.'}
 export function restoreErrorMessage(code:string){return restoreErrorMessages[code]??`Nie można zweryfikować części kopii (${code}).`}
 export function sourceUserLabel(backup:BackupPayload,id:string){const member=backup.modules.members?.find(row=>row.userId===id);return typeof member?.displayName==='string'?member.displayName:`${id.slice(0,8)}…`}

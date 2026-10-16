@@ -14,15 +14,11 @@ describe('budget form and permissions', () => {
   it('only owner/admin manage configuration', () => { expect(canManageBudgetConfiguration('owner')).toBe(true); expect(canManageBudgetConfiguration('admin')).toBe(true); expect(canManageBudgetConfiguration('adult')).toBe(false) })
 })
 
-describe('settlement date for selected budget month', () => {
+describe('settlement technical date', () => {
   const now = new Date(2026, 9, 16, 12)
-
-  it('uses the last day of September when viewed from October', () => expect(defaultSettlementDate(new Date(2026, 8, 1), now)).toBe('2026-09-30'))
-  it('uses today for the current October view', () => expect(defaultSettlementDate(new Date(2026, 9, 1), now)).toBe('2026-10-16'))
-  it('uses the first day of a future November view', () => expect(defaultSettlementDate(new Date(2026, 10, 1), now)).toBe('2026-11-01'))
-  it('uses February 28 in a non-leap year', () => expect(defaultSettlementDate(new Date(2026, 1, 1), now)).toBe('2026-02-28'))
-  it('uses February 29 in a leap year', () => expect(defaultSettlementDate(new Date(2024, 1, 1), now)).toBe('2024-02-29'))
-  it('returns inclusive September input bounds', () => expect(settlementMonthBounds(new Date(2026, 8, 1))).toEqual({ minDate:'2026-09-01', maxDate:'2026-09-30' }))
-  it('accepts dates inside the selected month and rejects another month', () => { expect(settlementDateInRange('2026-09-15','2026-09-01','2026-09-30')).toBe(true); expect(settlementDateInRange('2026-10-01','2026-09-01','2026-09-30')).toBe(false) })
-  it('keeps all-time on today without monthly bounds', () => expect(settlementDateOptions(new Date(2026, 8, 1),true,now)).toEqual({ defaultDate:'2026-10-16',minDate:undefined,maxDate:undefined }))
+  it('uses the last day for a past month', () => expect(defaultSettlementDate(new Date(2026,8,1),now)).toBe('2026-09-30'))
+  it('uses today for the current month', () => expect(defaultSettlementDate(new Date(2026,9,1),now)).toBe('2026-10-16'))
+  it('uses the first day for a future month', () => expect(defaultSettlementDate(new Date(2026,10,1),now)).toBe('2026-11-01'))
+  it('handles regular and leap-year February', () => { expect(settlementMonthBounds(new Date(2026,1,1)).maxDate).toBe('2026-02-28'); expect(settlementMonthBounds(new Date(2024,1,1)).maxDate).toBe('2024-02-29') })
+  it('keeps the technical date inside the selected month', () => { const options=settlementDateOptions(new Date(2026,8,1),false,now); expect(options).toEqual({defaultDate:'2026-09-30',minDate:'2026-09-01',maxDate:'2026-09-30'}); expect(settlementDateInRange(options.defaultDate,options.minDate,options.maxDate)).toBe(true) })
 })

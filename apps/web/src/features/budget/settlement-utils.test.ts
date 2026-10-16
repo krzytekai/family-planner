@@ -6,7 +6,7 @@ const person = (id: string): BudgetPerson => ({ id, displayName: id })
 const expense = (id: string, payer: string, cents: number, shared = true): BudgetTransaction => ({ id, familyId:'f', type:'expense', title:id, description:null, amountCents:cents, currency:'PLN', category:null, date:'2026-08-01', paidBy:person(payer), shared, createdBy:person(payer), createdAt:'' })
 const income = (cents: number): BudgetTransaction => ({ ...expense('income','a',cents,false), type:'income', paidBy:null })
 const parts = (transactionId: string, ids: string[]): ExpenseParticipant[] => ids.map((id) => ({ transactionId, user:person(id), shareWeight:1 }))
-const settlement = (from:string,to:string,cents:number): BudgetSettlement => ({ id:`${from}-${to}`,familyId:'f',from:person(from),to:person(to),amountCents:cents,currency:'PLN',date:'2026-08-01',note:null,createdBy:person(from) })
+const settlement = (from:string,to:string,cents:number): BudgetSettlement => ({ id:`${from}-${to}`,familyId:'f',from:person(from),to:person(to),amountCents:cents,currency:'PLN',settlementDate:'2026-08-31',date:'2026-09-01',note:null,createdBy:person(from) })
 const transfers = (transactions: BudgetTransaction[], participants: ExpenseParticipant[], settlements: BudgetSettlement[] = []) => calculateSuggestedTransfers(calculateSettlementBalances(transactions, participants, settlements))
 
 describe('shared-expense settlements', () => {
