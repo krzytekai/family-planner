@@ -18,9 +18,11 @@ interface CalendarEventCardProps {
   reminder?: Reminder
   onReminder?: (event: CalendarEvent) => void
   onStopRecurrence?: (event: CalendarEvent) => void
+  canChangeRecurrence?: boolean
+  onChangeRecurrence?: (event: CalendarEvent) => void
 }
 
-export function CalendarEventCard({ event, canManage, onEdit, onDelete, compact = false, reminder, onReminder, onStopRecurrence }: CalendarEventCardProps) {
+export function CalendarEventCard({ event, canManage, onEdit, onDelete, compact = false, reminder, onReminder, onStopRecurrence, canChangeRecurrence = false, onChangeRecurrence }: CalendarEventCardProps) {
   return (
     <article className={`mobile-card rounded-2xl border border-brand-gold/10 bg-brand-gold/[.035] ${compact ? 'p-3' : 'p-4'}`}>
       <div className="flex items-start justify-between gap-3">
@@ -33,6 +35,7 @@ export function CalendarEventCard({ event, canManage, onEdit, onDelete, compact 
       {!compact && event.description ? <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-brand-muted">{event.description}</p> : null}
       {!compact ? <p className="mt-3 text-xs text-brand-muted">Dodał(a): <span className="text-brand-text/80">{event.createdBy.displayName}</span></p> : null}
       {!compact && onReminder ? <button type="button" onClick={() => onReminder(event)} className={`mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2 text-xs transition ${reminder?'border-brand-green/20 text-brand-green hover:bg-brand-green/10':'border-white/10 text-brand-muted hover:border-brand-gold/20 hover:text-brand-gold'}`}><BellRing className="h-3.5 w-3.5"/>{reminder ? formatNotificationDate(reminder.remindAt) : 'Przypomnij'}</button> : null}
+      {!compact && canChangeRecurrence && onChangeRecurrence ? <button type="button" onClick={() => onChangeRecurrence(event)} className="ml-2 mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl border border-brand-gold/20 px-3 py-2 text-xs text-brand-gold hover:bg-brand-gold/10"><Repeat2 className="h-3.5 w-3.5"/>Zmień powtarzanie</button> : null}
       {!compact && canManage && event.recurrence?.enabled && onStopRecurrence ? <button type="button" onClick={() => onStopRecurrence(event)} className="ml-2 mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-xs text-brand-muted hover:border-red-400/20 hover:text-red-300"><Repeat2 className="h-3.5 w-3.5"/>Zakończ serię</button> : null}
     </article>
   )

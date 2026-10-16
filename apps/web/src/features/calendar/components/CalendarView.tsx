@@ -11,6 +11,7 @@ import { CalendarEventModal } from './CalendarEventModal'
 import { CalendarMonth } from './CalendarMonth'
 import { DeleteCalendarEventModal } from './DeleteCalendarEventModal'
 import { useNativeBackDismiss } from '../../../app/native-platform'
+import { CalendarRecurrenceEditModal } from './CalendarRecurrenceEditModal'
 
 const filters: Array<{ value: CalendarFilter; label: string }> = [
   { value: 'all', label: 'Wszystko' }, { value: 'events', label: 'Wydarzenia' },
@@ -25,12 +26,13 @@ export function CalendarView({ family, createRequest, reminders, onViewTask, onR
   const [filter, setFilter] = useState<CalendarFilter>('all')
   const [editor, setEditor] = useState<{ event: CalendarEvent | null; date: Date } | null>(null)
   const [deleting, setDeleting] = useState<CalendarEvent | null>(null)
+  const [recurrenceEditor, setRecurrenceEditor] = useState<CalendarEvent | null>(null)
   const handledCreateRequest = useRef(createRequest)
   const days = useMemo(() => getMonthGrid(month), [month])
   const range = useMemo(() => getMonthGridRange(month), [month])
   const calendar = useCalendar(family.familyId, range.start, range.end)
   const canCreate = canCreateCalendarEvent(family.role)
-  useNativeBackDismiss(Boolean(deleting || editor), () => { if (deleting) setDeleting(null); else setEditor(null) })
+  useNativeBackDismiss(Boolean(deleting || editor || recurrenceEditor), () => { if (recurrenceEditor) setRecurrenceEditor(null); else if (deleting) setDeleting(null); else setEditor(null) })
   useEffect(() => { if (createRequest !== handledCreateRequest.current) { handledCreateRequest.current = createRequest; if (canCreate) setEditor({ event: null, date: selectedDate }) } }, [canCreate, createRequest, selectedDate])
   const allItems = useMemo(() => days.flatMap((date) => itemsForDate(calendar.events, calendar.tasks, date)), [calendar.events, calendar.tasks, days])
   const filtered = useMemo(() => filterCalendarItems(allItems, filter, family.userId), [allItems, family.userId, filter])
@@ -52,8 +54,9 @@ export function CalendarView({ family, createRequest, reminders, onViewTask, onR
     {calendar.actionError ? <p role="alert" className="mt-4 rounded-xl border border-red-400/15 bg-red-400/5 p-3 text-sm text-red-300">{calendar.actionError}</p> : null}
     {calendar.loading ? <div className="surface mt-4 h-[38rem] animate-pulse rounded-2xl"/> : null}
     {!calendar.loading && calendar.error ? <p role="alert" className="surface mt-4 rounded-2xl p-5 text-red-300">Nie udało się pobrać kalendarza: {calendar.error}</p> : null}
-    {!calendar.loading && !calendar.error ? <><div className="mt-4"><CalendarMonth days={days} month={month} selectedDate={selectedDate} events={visibleEvents} tasks={visibleTasks} onSelectDate={selectDate} onEventClick={openEvent} onTaskClick={onViewTask}/></div>{filtered.length === 0 ? <p className="mt-3 text-center text-xs text-brand-muted">Brak wpisów w tym miesiącu.</p> : null}<div className="mt-4"><CalendarDay date={selectedDate} events={visibleEvents} tasks={visibleTasks} filter="all" family={family} reminders={reminders} onEdit={(event) => setEditor({ event, date: selectedDate })} onDelete={setDeleting} onStopRecurrence={stopRecurrence} onTaskClick={onViewTask} onReminder={onReminder}/></div></> : null}
+    {!calendar.loading && !calendar.error ? <><div className="mt-4"><CalendarMonth days={days} month={month} selectedDate={selectedDate} events={visibleEvents} tasks={visibleTasks} onSelectDate={selectDate} onEventClick={openEvent} onTaskClick={onViewTask}/></div>{filtered.length === 0 ? <p className="mt-3 text-center text-xs text-brand-muted">Brak wpisów w tym miesiącu.</p> : null}<div className="mt-4"><CalendarDay date={selectedDate} events={visibleEvents} tasks={visibleTasks} filter="all" family={family} reminders={reminders} onEdit={(event) => setEditor({ event, date: selectedDate })} onDelete={setDeleting} onStopRecurrence={stopRecurrence} onChangeRecurrence={setRecurrenceEditor} onTaskClick={onViewTask} onReminder={onReminder}/></div></> : null}
     {editor ? <CalendarEventModal familyId={family.familyId} event={editor.event} initialDate={editor.date} saving={calendar.saving} onSave={calendar.saveEvent} onClose={() => setEditor(null)}/> : null}
     {deleting ? <DeleteCalendarEventModal event={deleting} deleting={calendar.deletingIds.has(deleting.id)} onDelete={calendar.deleteEvent} onClose={() => setDeleting(null)}/> : null}
+    {recurrenceEditor ? <CalendarRecurrenceEditModal event={recurrenceEditor} saving={calendar.saving} onSave={(rule) => calendar.changeRecurrenceFromOccurrence({ familyId: family.familyId, eventId: recurrenceEditor.id, rule }).then(() => undefined)} onClose={() => setRecurrenceEditor(null)}/> : null}
   </div>
 }

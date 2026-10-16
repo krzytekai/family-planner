@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createTaskRepository } from '../../tasks/api/task-repository'
 import { createCalendarRepository } from '../api/calendar-repository'
-import type { CalendarEvent, CalendarEventInput } from '../types'
+import type { CalendarEvent, CalendarEventInput, CalendarRecurrenceChangeInput } from '../types'
 
 export function useCalendar(familyId: string, rangeStart: Date, rangeEnd: Date) {
   const calendarRepository = useMemo(() => createCalendarRepository(), [])
@@ -94,7 +94,23 @@ export function useCalendar(familyId: string, rangeStart: Date, rangeEnd: Date) 
     finally { setSaving(false) }
   }, [calendarRepository, familyId, refresh])
 
-  return { events, tasks, loading, saving, deletingIds, error, actionError, saveEvent, deleteEvent, stopRecurrence }
+  const changeRecurrenceFromOccurrence = useCallback(async (input: CalendarRecurrenceChangeInput) => {
+    setSaving(true)
+    setActionError(null)
+    try {
+      const firstEventId = await calendarRepository.changeRecurrenceFromOccurrence(input)
+      await refresh()
+      return firstEventId
+    } catch (reason) {
+      const message = reason instanceof Error ? reason.message : 'Nie udało się zmienić powtarzania wydarzenia.'
+      setActionError(message)
+      throw new Error(message)
+    } finally {
+      setSaving(false)
+    }
+  }, [calendarRepository, refresh])
+
+  return { events, tasks, loading, saving, deletingIds, error, actionError, saveEvent, deleteEvent, stopRecurrence, changeRecurrenceFromOccurrence }
 }
 
 export function useUpcomingCalendarEvents(familyId: string) {

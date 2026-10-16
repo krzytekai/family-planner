@@ -49,6 +49,12 @@ export interface CalendarEventInput {
   recurrence: { rule: RecurrenceRule; timezone: string } | null
 }
 
+export interface CalendarRecurrenceChangeInput {
+  familyId: string
+  eventId: string
+  rule: RecurrenceRule
+}
+
 export type CalendarItem =
   | { type: 'event'; id: string; event: CalendarEvent }
   | { type: 'task'; id: string; task: Task }

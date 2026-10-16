@@ -109,6 +109,30 @@ export function canEditCalendarEvent(event: CalendarEvent, userId: string, role:
   return role === 'owner' || role === 'admin' || event.createdBy.id === userId
 }
 
+export function dateKeyInTimeZone(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date)
+  const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? ''
+  return `${value('year')}-${value('month')}-${value('day')}`
+}
+
+export function calendarEventAnchorDate(event: CalendarEvent): string {
+  if (!event.recurrence) return ''
+  if (event.allDay) return event.startDate ?? event.recurrence.occurrenceDate
+  return event.startsAt
+    ? dateKeyInTimeZone(new Date(event.startsAt), event.recurrence.timezone)
+    : event.recurrence.occurrenceDate
+}
+
+export function canChangeCalendarRecurrence(event: CalendarEvent, userId: string, role: FamilyRole, now = new Date()): boolean {
+  if (!event.recurrence?.enabled || !canEditCalendarEvent(event, userId, role)) return false
+  return event.recurrence.occurrenceDate >= dateKeyInTimeZone(now, event.recurrence.timezone)
+}
+
 export const canDeleteCalendarEvent = canEditCalendarEvent
 
 export function canCreateCalendarEvent(role: FamilyRole): boolean {

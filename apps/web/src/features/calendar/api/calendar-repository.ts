@@ -1,7 +1,7 @@
 import { getSupabaseClient } from '../../../lib/supabase'
 import { addDays, eventOverlapsRange, toDateKey } from '../calendar-utils'
 import type { RecurrenceRule } from '../../tasks/types'
-import type { CalendarEvent, CalendarEventInput, CalendarEventType, CalendarPerson } from '../types'
+import type { CalendarEvent, CalendarEventInput, CalendarEventType, CalendarPerson, CalendarRecurrenceChangeInput } from '../types'
 
 type RelatedProfile = { id: string; display_name: string } | Array<{ id: string; display_name: string }> | null
 
@@ -32,6 +32,7 @@ export interface CalendarRepository {
   updateEvent(familyId: string, eventId: string, input: CalendarEventInput): Promise<void>
   deleteEvent(familyId: string, eventId: string): Promise<void>
   stopRecurrence(familyId: string, eventId: string): Promise<void>
+  changeRecurrenceFromOccurrence(input: CalendarRecurrenceChangeInput): Promise<string>
 }
 
 export function buildCalendarRangeFilters(rangeStart: Date, rangeEnd: Date) {
@@ -54,6 +55,15 @@ function getClient() {
   const client = getSupabaseClient()
   if (!client) throw new Error('Brak konfiguracji Supabase.')
   return client
+}
+
+function recurrenceChangeError(message: string): string {
+  if (message.includes('today or a future occurrence')) return 'Częstotliwość można zmienić od dzisiejszego lub przyszłego wystąpienia.'
+  if (message.includes('series is inactive')) return 'Ta seria wydarzeń została już zakończona.'
+  if (message.includes('management is not allowed')) return 'Nie masz uprawnień do zmiany tej serii wydarzeń.'
+  if (message.includes('invalid recurrence rule')) return 'Podaj poprawną regułę powtarzania.'
+  if (message.includes('not recurring')) return 'To wydarzenie nie należy do aktywnej serii.'
+  return 'Nie udało się zmienić powtarzania wydarzenia.'
 }
 
 function profileFromRelation(value: RelatedProfile, fallbackId: string): CalendarPerson {
@@ -167,6 +177,17 @@ export function createCalendarRepository(): CalendarRepository {
       const { data, error } = await getClient().rpc('stop_calendar_event_recurrence', { target_family_id: familyId, target_event_id: eventId })
       if (error) throw new Error(error.message)
       if (!data) throw new Error('Nie udało się zakończyć serii wydarzeń.')
+    },
+
+    async changeRecurrenceFromOccurrence(input) {
+      const { data, error } = await getClient().rpc('change_calendar_event_recurrence_from_occurrence', {
+        target_family_id: input.familyId,
+        target_event_id: input.eventId,
+        recurrence_rule_value: input.rule,
+      })
+      if (error) throw new Error(recurrenceChangeError(error.message))
+      if (!data) throw new Error('Nie udało się zmienić powtarzania wydarzenia.')
+      return data as string
     },
   }
 }
